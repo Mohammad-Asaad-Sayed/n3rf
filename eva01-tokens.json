@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "name": "EVA-01",
+    "version": "1.0",
+    "mode": "dark-only",
+    "fonts": {
+      "display": "Chakra Petch",
+      "ui": "Rajdhani",
+      "mono": "Share Tech Mono"
+    },
+    "notes": "Visual system only. Do not rename product terminology."
+  },
+  "color": {
+    "surface": {
+      "void": "#05030B",
+      "base": "#0C0818",
+      "panel": "#16102C",
+      "raised": "#1E1640",
+      "overlay": "#2A1F4E"
+    },
+    "line": {
+      "hairline": "#2E2150",
+      "strong": "#3D2C68"
+    },
+    "purple": {
+      "deep": "#3A1D66",
+      "base": "#6B3FA0",
+      "light": "#7B4BB8"
+    },
+    "accent": {
+      "green": "#A6FF3D",
+      "greenDim": "#7BBF35",
+      "onAccent": "#0B1206"
+    },
+    "semantic": {
+      "warn": "#FFC24B",
+      "alert": "#FF7A1A",
+      "danger": "#FF2E4D",
+      "info": "#9A6BFF"
+    },
+    "text": {
+      "primary": "#F7F4FF",
+      "secondary": "#DCD3F5",
+      "tertiary": "#B9AEDC",
+      "meta": "#8B80AE"
+    },
+    "series": [
+      "#A6FF3D",
+      "#9A6BFF",
+      "#FFC24B",
+      "#FF7A1A",
+      "#FF2E4D",
+      "#6B5F92"
+    ]
+  },
+  "radius": {
+    "xs": "1px",
+    "sm": "2px",
+    "md": "3px",
+    "full": "999px"
+  },
+  "space": [
+    2,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    32,
+    40,
+    56,
+    72
+  ],
+  "controlHeight": {
+    "xs": 24,
+    "sm": 28,
+    "md": 32,
+    "lg": 36,
+    "xl": 40
+  },
+  "type": {
+    "micro": {
+      "size": 9,
+      "line": 12,
+      "family": "mono",
+      "weight": 400,
+      "case": "upper",
+      "tracking": "0.06em"
+    },
+    "label": {
+      "size": 11,
+      "line": 14,
+      "family": "ui",
+      "weight": 600,
+      "case": "upper",
+      "tracking": "0.045em"
+    },
+    "bodyS": {
+      "size": 12,
+      "line": 18,
+      "family": "ui",
+      "weight": 500,
+      "case": "sentence"
+    },
+    "body": {
+      "size": 13,
+      "line": 20,
+      "family": "ui",
+      "weight": 500,
+      "case": "sentence"
+    },
+    "bodyL": {
+      "size": 15,
+      "line": 22,
+      "family": "ui",
+      "weight": 500,
+      "case": "sentence"
+    },
+    "titleS": {
+      "size": 16,
+      "line": 22,
+      "family": "display",
+      "weight": 600,
+      "case": "upper",
+      "tracking": "0.02em"
+    },
+    "titleM": {
+      "size": 20,
+      "line": 26,
+      "family": "display",
+      "weight": 600,
+      "case": "sentence"
+    },
+    "display": {
+      "size": 32,
+      "line": 34,
+      "family": "display",
+      "weight": 700,
+      "case": "upper",
+      "tracking": "-0.01em"
+    },
+    "displayXL": {
+      "size": 44,
+      "line": 44,
+      "family": "display",
+      "weight": 700,
+      "case": "upper",
+      "tracking": "-0.015em"
+    },
+    "monoData": {
+      "size": 12,
+      "line": 16,
+      "family": "mono",
+      "weight": 400,
+      "case": "sentence",
+      "tracking": "0.02em"
+    }
+  },
+  "effects": {
+    "glowAccent": "0 0 18px rgba(166,255,61,0.55)",
+    "glowAccentStrong": "0 0 26px rgba(166,255,61,0.65)",
+    "glowSoft": "0 0 46px rgba(107,63,160,0.45)",
+    "shadowFloat": "0 8px 24px rgba(0,0,0,0.55)",
+    "focusRing": "0 0 0 1px #A6FF3D, 0 0 0 3px rgba(166,255,61,0.25)",
+    "scanline": "repeating-linear-gradient(180deg, rgba(255,255,255,0.032) 0 1px, transparent 1px 12px)",
+    "hazard": "repeating-linear-gradient(45deg, #FFC24B 0 10px, #141024 10px 20px)"
+  },
+  "motion": {
+    "ease": "cubic-bezier(0.2,0,0,1)",
+    "micro": 120,
+    "standard": 180,
+    "overlayIn": 220,
+    "overlayOut": 160
+  },
+  "constraints": {
+    "accentBudgetPerScreen": 3,
+    "maxRadius": "3px",
+    "borderWidths": [
+      1,
+      2
+    ],
+    "maxGlowsPerScreen": 1,
+    "uppercaseMaxChars": 24,
+    "minContrastBody": 4.5,
+    "lightMode": false,
+    "renameProductTerminology": false
+  }
+}

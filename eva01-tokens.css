@@ -1,0 +1,105 @@
+/* EVA-01 theme tokens v1.0 — dark only. Use these, never raw hex. */
+:root {
+  /* surfaces */
+  --surface-void:    #05030B;
+  --surface-base:    #0C0818;
+  --surface-panel:   #16102C;
+  --surface-raised:  #1E1640;
+  --surface-overlay: #2A1F4E;
+
+  /* lines & structure */
+  --line-hairline: #2E2150;
+  --line-strong:   #3D2C68;
+  --purple-deep:   #3A1D66;
+  --purple:        #6B3FA0;
+  --purple-light:  #7B4BB8;
+
+  /* accents */
+  --accent:      #A6FF3D;
+  --accent-dim:  #7BBF35;
+  --on-accent:   #0B1206;
+  --warn:        #FFC24B;
+  --alert:       #FF7A1A;
+  --danger:      #FF2E4D;
+  --info:        #9A6BFF;
+
+  /* text */
+  --text-primary:   #F7F4FF;
+  --text-secondary: #DCD3F5;
+  --text-tertiary:  #B9AEDC;
+  --text-meta:      #8B80AE;
+
+  /* data series, in order */
+  --series-1: #A6FF3D;
+  --series-2: #9A6BFF;
+  --series-3: #FFC24B;
+  --series-4: #FF7A1A;
+  --series-5: #FF2E4D;
+  --series-6: #6B5F92;
+
+  /* radius */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-full: 999px;
+
+  /* spacing (4px base) */
+  --space-1: 2px;  --space-2: 4px;   --space-3: 8px;   --space-4: 12px;
+  --space-5: 16px; --space-6: 20px;  --space-7: 24px;  --space-8: 32px;
+  --space-9: 40px; --space-10: 56px; --space-11: 72px;
+
+  /* control heights */
+  --control-xs: 24px; --control-sm: 28px; --control-md: 32px;
+  --control-lg: 36px; --control-xl: 40px;
+
+  /* type families */
+  --font-display: "Chakra Petch", "Rajdhani", system-ui, sans-serif;
+  --font-ui:      "Rajdhani", "Chakra Petch", system-ui, sans-serif;
+  --font-mono:    "Share Tech Mono", ui-monospace, monospace;
+
+  /* type scale */
+  --type-micro-size: 9px;   --type-micro-lh: 12px;  --type-micro-track: 0.06em;
+  --type-label-size: 11px;  --type-label-lh: 14px;  --type-label-track: 0.045em;
+  --type-body-s-size: 12px; --type-body-s-lh: 18px;
+  --type-body-size: 13px;   --type-body-lh: 20px;
+  --type-body-l-size: 15px; --type-body-l-lh: 22px;
+  --type-title-s-size: 16px; --type-title-s-lh: 22px; --type-title-s-track: 0.02em;
+  --type-title-m-size: 20px; --type-title-m-lh: 26px;
+  --type-display-size: 32px; --type-display-lh: 34px; --type-display-track: -0.01em;
+  --type-display-xl-size: 44px; --type-display-xl-lh: 44px; --type-display-xl-track: -0.015em;
+  --type-mono-size: 12px; --type-mono-lh: 16px;
+
+  /* effects */
+  --glow-accent:        0 0 18px rgba(166, 255, 61, 0.55);
+  --glow-accent-strong: 0 0 26px rgba(166, 255, 61, 0.65);
+  --glow-soft:          0 0 46px rgba(107, 63, 160, 0.45);
+  --shadow-float:       0 8px 24px rgba(0, 0, 0, 0.55);
+  --focus-ring:         0 0 0 1px #A6FF3D, 0 0 0 3px rgba(166, 255, 61, 0.25);
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 120ms;
+  --dur-standard: 180ms;
+  --dur-overlay-in: 220ms;
+  --dur-overlay-out: 160ms;
+}
+
+/* helpers */
+.eva-scanlines::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(180deg,
+    rgba(255, 255, 255, 0.032) 0 1px, transparent 1px 12px);
+}
+.eva-hazard {
+  height: 12px;
+  background-image: repeating-linear-gradient(45deg,
+    var(--warn) 0 10px, #141024 10px 20px);
+}
+.eva-bracket {
+  position: absolute; width: 30px; height: 30px; pointer-events: none;
+  border: 2px solid var(--accent);
+}
+.eva-bracket--tl { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+.eva-bracket--tr { top: 0; right: 0; border-left: 0; border-bottom: 0; }
+.eva-bracket--bl { bottom: 0; left: 0; border-right: 0; border-top: 0; }
+.eva-bracket--br { bottom: 0; right: 0; border-left: 0; border-top: 0; }
