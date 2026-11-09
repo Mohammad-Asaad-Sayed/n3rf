@@ -524,14 +524,15 @@ export function LandingPage() {
         </section>
 
         <footer className="landing-footer">
-          <div className="landing-platform-reveal">
-            <p>Try the workflow with your data, or inspect the prepared example before you begin. <button type="button" onClick={() => goTo("landing-artifact")}>View the example →</button></p>
-            <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>Get started with n3rf <ArrowUpRight /></a>
+          <div className="landing-footer-main">
+            <a className="landing-footer-brand" href="/" aria-label="n3rf home">n3rf</a>
+            <span>Self-hosted AI data workflows for structured rows.</span>
+            <nav aria-label="Footer">
+              <a href="/legal">About · Privacy · Terms · Data</a>
+              <a href={SELF_HOSTING_URL}>Self-hosting guide <ArrowUpRight aria-hidden="true" /></a>
+            </nav>
           </div>
-          <div className="landing-footer-meta">
-            <span>n3rf · AI data workflows with visible, inspectable results · © 2026 · AI-generated information may be inaccurate. Verify important results. · <a href="/legal">About · Privacy · Terms · Data</a></span>
-            <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>SELF-HOST N3RF <ChevronRight /></a>
-          </div>
+          <p className="landing-footer-note">© 2026 n3rf · AI-generated information may be inaccurate. Verify important results.</p>
         </footer>
       </div>
     </main>
