@@ -19,6 +19,19 @@ class SchemaValidationError(ValidationError):
         self.tokens_out = tokens_out
 
 
+def _schema_format(schema: dict[str, Any] | None, strict: bool) -> dict[str, Any] | None:
+    """Build the response_format for a schema. Strict asks the provider to enforce it;
+    the caller downgrades to json_object when a provider rejects strict mode."""
+    if not schema:
+        return None
+    if strict:
+        return {
+            "type": "json_schema",
+            "json_schema": {"name": "output", "strict": True, "schema": schema},
+        }
+    return {"type": "json_object"}
+
+
 class LLMClient:
     def __init__(
         self,
@@ -47,15 +60,20 @@ class LLMClient:
         *,
         schema: dict[str, Any] | None = None,
         web_search: bool = False,
+        max_tokens: int = 0,
     ) -> tuple[Any, int, int]:
         if not model:
             raise NodeError("Parameter 'model' is required.")
+        if max_tokens < 0:
+            raise NodeError("Parameter 'max_tokens' must be zero or greater.")
         headers = {"Authorization": "Bearer " + self.api_key} if self.api_key else {}
         url = f"{self.base_url}/chat/completions"
+        strict_schema = bool(schema)
         body = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"} if schema else None,
+            "response_format": _schema_format(schema, strict_schema),
+            "max_tokens": max_tokens if max_tokens > 0 else None,
             "tools": (
                 [
                     {
@@ -69,10 +87,17 @@ class LLMClient:
             "max_tool_calls": 3 if web_search else None,
         }
         body = {key: value for key, value in body.items() if value is not None}
+        downgraded = False
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             for attempt in range(self.retries + 1):
                 try:
                     response = await client.post(url, headers=headers, json=body)
+                    if response.status_code in {400, 422} and strict_schema and not downgraded:
+                        # Some providers reject strict JSON schema; fall back to json_object.
+                        downgraded = True
+                        strict_schema = False
+                        body["response_format"] = _schema_format(schema, strict_schema)
+                        continue
                     response.raise_for_status()
                     payload = response.json()
                     content = payload["choices"][0]["message"]["content"]

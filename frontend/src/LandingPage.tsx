@@ -11,15 +11,10 @@ import {
   useEffect,
   useRef,
   useState,
-  type ChangeEvent,
-  type DragEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Button } from "./components/ui/button";
-import { apiFetch } from "./lib/workflow";
 import "./styles/landing.css";
-
-type CsvImport = { name: string; text: string };
 
 const enrichedCompanies = [
   {
@@ -132,7 +127,7 @@ const faqs = [
   },
   {
     q: "What file formats does n3rf support?",
-    a: "CSV, TSV, spreadsheet paste, Manual JSON, Text Lines, File Upload, Field Builder and the sample dataset at /app. Excel (.xlsx) is parsed in Python (standard library only, up to 10 MB) via POST /parse-file and opened as the same CSV canvas — legacy .xls should be resaved as .xlsx. The landing-page import accepts .csv/.tsv/.xlsx up to 10 MB.",
+    a: "CSV, TSV, spreadsheet paste, Manual JSON, Text Lines, File Upload, Field Builder and the sample dataset at /app. Excel (.xlsx) is parsed in Python (standard library only, up to 10 MB) via POST /parse-file and opened as the same CSV canvas — legacy .xls should be resaved as .xlsx. The workspace's Drop your CSV page accepts .csv/.tsv/.xlsx up to 10 MB.",
   },
   {
     q: "How much will a run cost before I commit?",
@@ -150,18 +145,12 @@ const faqs = [
 
 export function LandingPage({
   onOpenWorkspace,
-  onImportCsv,
 }: {
   onOpenWorkspace: () => void;
-  onImportCsv: (file: CsvImport) => boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [importError, setImportError] = useState("");
-  const [importedName, setImportedName] = useState("");
   const [signalAligned, setSignalAligned] = useState(false);
   const [signalFallback, setSignalFallback] = useState<"failed" | "disabled" | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -213,71 +202,6 @@ export function LandingPage({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       block: "start",
     });
-  }
-
-  async function importFile(file: File | undefined) {
-    setImportError("");
-    if (!file) return;
-    const name = file.name.toLocaleLowerCase();
-    const isCsv = name.endsWith(".csv") || name.endsWith(".tsv") || file.type === "text/csv";
-    const isXlsx = name.endsWith(".xlsx");
-    if (!isCsv && !isXlsx) {
-      setImportError("Choose a .csv, .tsv or .xlsx file to try a live run.");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setImportError("This local import is limited to 10 MB. Split the file and try again.");
-      return;
-    }
-    if (isXlsx) {
-      try {
-        const form = new FormData();
-        form.append("file", file);
-        const response = await apiFetch("/parse-file", { method: "POST", body: form });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.detail || "Excel file could not be read.");
-        const csvText = payload.csvText as string;
-        if (!csvText?.trim()) {
-          setImportError("That spreadsheet has no rows we can read. Export the full sheet and try again.");
-          return;
-        }
-        if (!onImportCsv({ name: file.name.replace(/\.xlsx$/i, ""), text: csvText })) {
-          setImportError("The spreadsheet could not be passed to the workspace.");
-          return;
-        }
-        setImportedName(file.name);
-      } catch (error) {
-        setImportError(error instanceof Error ? error.message : "The spreadsheet could not be read.");
-      }
-      return;
-    }
-    let text: string;
-    try {
-      text = await file.text();
-    } catch {
-      setImportError("The file could not be read. Check the file and try again.");
-      return;
-    }
-    if (!text.trim()) {
-      setImportError("That file has no rows we can read. Export the full CSV — not just a preview.");
-      return;
-    }
-    if (!onImportCsv({ name: file.name.replace(/\.(csv|tsv)$/i, ""), text })) {
-      setImportError("The file could not be passed to the workspace. Check that browser storage is available.");
-      return;
-    }
-    setImportedName(file.name);
-  }
-
-  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    void importFile(event.currentTarget.files?.[0]);
-    event.currentTarget.value = "";
-  }
-
-  function onFileDrop(event: DragEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    setDragging(false);
-    void importFile(event.dataTransfer.files[0]);
   }
 
   function downloadSample() {
@@ -342,37 +266,25 @@ export function LandingPage({
               >
                 <Button
                   variant="primary"
-                  onClick={() => fileInput.current?.click()}
+                  onClick={onOpenWorkspace}
                   onPointerMove={tiltElement}
                   onPointerLeave={resetTilt}
                 >
-                  <Upload /> {importedName ? `${importedName} · opening…` : "Start enriching for free"}
+                  <Upload /> Start enriching for free
                 </Button>
                 <Button variant="ghost" onClick={() => goTo("landing-how")}>See how it works <ArrowDown /></Button>
                 <p className="landing-sample-note">No signup · no key for the sample · .csv / .tsv / .xlsx up to 10 MB. <button type="button" onClick={() => goTo("landing-artifact")}>See the sample run instead ↓</button></p>
               </div>
               <button
-                className={`landing-upload${dragging ? " is-dragging" : ""}`}
+                className="landing-upload"
                 type="button"
-                onClick={() => fileInput.current?.click()}
-                onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={onFileDrop}
-                aria-label="Drop your CSV here"
+                onClick={onOpenWorkspace}
+                aria-label="Open the workspace to drop your CSV"
               >
                 <Upload />
-                <span>{dragging ? "Release to run your file" : "Drop a .csv / .tsv / .xlsx to open it at /app"}</span>
+                <span>Drop your CSV — opens the workspace</span>
                 <ChevronRight />
               </button>
-              <input
-                ref={fileInput}
-                className="landing-file-input"
-                type="file"
-                accept=".csv,.tsv,.xlsx,text/csv"
-                aria-label="Choose a CSV file"
-                onChange={onFileChange}
-              />
-              {importError && <p className="landing-import-error" role="alert">{importError}</p>}
             </div>
             <div className="landing-proof" aria-label="Sample run summary">
               <span className="landing-proof-dot" />

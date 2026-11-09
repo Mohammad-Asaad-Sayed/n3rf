@@ -112,7 +112,6 @@ type ModelProfile = {
 
 export function App() {
   const [url, setUrl] = useState(() => ({ pathname: window.location.pathname, hash: window.location.hash }));
-  const [pendingCsv, setPendingCsv] = useState<{ name: string; text: string } | null>(null);
 
   useEffect(() => {
     const updateUrl = () => setUrl({ pathname: window.location.pathname, hash: window.location.hash });
@@ -162,10 +161,10 @@ export function App() {
   // Bricks-style /app: upload gate first, canvas in place after upload (no editor route hop).
   // /app/editor* stays as a direct-canvas alias for bookmarks.
   if (pathname.startsWith("/app/editor")) {
-    return <WorkflowEditor key={pathname + hash + window.location.search} csvImport={pendingCsv} onCsvImportConsumed={() => setPendingCsv(null)} />;
+    return <WorkflowEditor key={pathname + hash + window.location.search} />;
   }
   if (pathname === "/app" || pathname === "/app/") {
-    return <AppPage pendingCsv={pendingCsv} onCsvConsumed={() => setPendingCsv(null)} />;
+    return <AppPage />;
   }
   if (pathname === "/app/models") return <ModelSettingsPage />;
   if (pathname === "/app/workflows") {
@@ -178,28 +177,10 @@ export function App() {
     );
   }
   if (isLanding) {
-    return (
-      <LandingPage
-        onOpenWorkspace={() => openWorkspace()}
-        onImportCsv={(file) => {
-          setPendingCsv(file);
-          window.location.href = "/app";
-          return true;
-        }}
-      />
-    );
+    return <LandingPage onOpenWorkspace={openWorkspace} />;
   }
 
-  return (
-    <LandingPage
-      onOpenWorkspace={() => openWorkspace()}
-      onImportCsv={(file) => {
-        setPendingCsv(file);
-        window.location.href = "/app";
-        return true;
-      }}
-    />
-  );
+  return <LandingPage onOpenWorkspace={openWorkspace} />;
 }
 
 function HomePage({
@@ -601,27 +582,13 @@ function ModelSettingsPage() {
   );
 }
 
-function AppPage({
-  pendingCsv,
-  onCsvConsumed,
-}: {
-  pendingCsv: { name: string; text: string } | null;
-  onCsvConsumed: () => void;
-}) {
+function AppPage() {
   const [started, setStarted] = useState(false);
   const [localCsv, setLocalCsv] = useState<{ name: string; text: string } | null>(null);
   const [preview, setPreview] = useState<{ name: string; text: string; columns: string[]; totalRows: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (pendingCsv) {
-      setLocalCsv(pendingCsv);
-      setPreview({ name: pendingCsv.name, text: pendingCsv.text, columns: [], totalRows: 0 });
-      setStarted(true);
-    }
-  }, [pendingCsv]);
 
   async function importFile(file: File | undefined) {
     setError("");
@@ -687,7 +654,7 @@ function AppPage({
 
   if (started) {
     const csvImport = localCsv ?? (preview ? { name: preview.name, text: preview.text } : null);
-    return <WorkflowEditor csvImport={csvImport} onCsvImportConsumed={() => { setLocalCsv(null); onCsvConsumed(); }} />;
+    return <WorkflowEditor csvImport={csvImport} onCsvImportConsumed={() => setLocalCsv(null)} />;
   }
 
   return (
@@ -825,11 +792,11 @@ function sampleRowsFromNode(node: WorkflowNode): Record<string, unknown>[] {
 }
 
 function WorkflowEditor({
-  csvImport,
+  csvImport = null,
   onCsvImportConsumed,
 }: {
-  csvImport: { name: string; text: string } | null;
-  onCsvImportConsumed: () => void;
+  csvImport?: { name: string; text: string } | null;
+  onCsvImportConsumed?: () => void;
 }) {
   const workflowPath = window.location.pathname.startsWith("/app/editor/")
     ? window.location.pathname.slice("/app/editor/".length)
@@ -1227,7 +1194,7 @@ function WorkflowEditor({
         },
       ]);
       setSelectedId(id);
-      onCsvImportConsumed();
+      onCsvImportConsumed?.();
       return;
     }
     // Draft backup (Bricks-style auto-save): restore unsaved canvas if present.

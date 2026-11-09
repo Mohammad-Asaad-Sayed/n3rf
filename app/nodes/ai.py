@@ -296,6 +296,16 @@ _COMMON = [
             hint="Leave {} for free JSON. Set a schema to validate the model's reply.",
         ),
         Param(
+            "max_tokens",
+            "number",
+            "Max output tokens",
+            default=0,
+            hint=(
+                "0 = provider default. OpenRouter reserves a model's full output cap against "
+                "your key limit, so cap the reply when using JSON schema with web search."
+            ),
+        ),
+        Param(
             "web_search",
             "boolean",
             "Web search",
@@ -322,6 +332,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
         return []
     provider, base_url, api_key_env, model, api_key_override = _resolve(ctx)
     schema = ctx.param("schema", dict, {})
+    max_tokens = ctx.param("max_tokens", int, 0)
     web_search = provider == "openrouter" and ctx.param("web_search", bool, False)
     template = ctx.param("prompt", str, "")
     mode = ctx.param("mode", str, "per_input")
@@ -360,7 +371,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
         ctx.metrics["llm_calls"] += 1
         try:
             value, tokens_in, tokens_out = await client.complete(
-                model, prompt, schema=schema or None, web_search=web_search
+                model, prompt, schema=schema or None, web_search=web_search, max_tokens=max_tokens
             )
         except SchemaValidationError as first:
             ctx.metrics["tokens_in"] += first.tokens_in
@@ -372,6 +383,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
                 f"{first.message}. Return corrected JSON.",
                 schema=schema or None,
                 web_search=web_search,
+                max_tokens=max_tokens,
             )
         ctx.metrics["tokens_in"] += tokens_in
         ctx.metrics["tokens_out"] += tokens_out

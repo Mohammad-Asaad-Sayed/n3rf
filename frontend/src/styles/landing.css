@@ -176,9 +176,6 @@
 .landing-upload > span { flex: 1; }
 .landing-upload svg { width: 14px; height: 14px; color: var(--text-tertiary); }
 .landing-upload:hover, .landing-upload:focus-visible { border-color: var(--purple-light); outline: 0; box-shadow: 0 0 0 1px var(--purple-light), 0 0 0 3px color-mix(in srgb, var(--info) 22%, transparent); }
-.landing-upload.is-dragging { background: var(--surface-overlay); border-color: var(--purple-light); }
-.landing-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
-.landing-import-error { max-width: 430px; margin: var(--space-2) 0 0; color: var(--danger); font: var(--type-micro-size)/var(--type-micro-lh) var(--font-mono); }
 .landing-proof {
   display: flex;
   min-height: 44px;

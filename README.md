@@ -5,6 +5,15 @@ Workflows run against your own OpenAI-compatible endpoint and API key.
 
 ## Run locally
 
+Once set up (below), start everything with one command — Uvicorn serves the built React
+frontend and the API from the same origin on port 8000:
+
+```bash
+cd ~/Downloads/n3rf && .venv/bin/uvicorn app.main:app --reload --port 8000
+```
+
+Open the served app at http://127.0.0.1:8000 (OpenAPI at `/docs`). Full setup:
+
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate

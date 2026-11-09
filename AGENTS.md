@@ -99,10 +99,15 @@ python -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
 
 uvicorn app.main:app --reload --port 8000     # API on :8000, /docs for OpenAPI
+# or, in one line from the project root (serves frontend dist + API together):
+.venv/bin/uvicorn app.main:app --reload --port 8000
 python examples/demo.py                       # end-to-end against a real model
 pytest -q                                     # must stay under 10s, fully offline
 ruff check app tests && ruff format --check app tests
 ```
+
+Open http://127.0.0.1:8000. FastAPI serves the production React editor and API from one
+origin; the OpenAPI docs are at http://127.0.0.1:8000/docs.
 
 Build the React editor with `cd frontend && pnpm install && pnpm run build`. FastAPI serves the
 production build at `/`; during development, run Vite with `pnpm dev` and FastAPI separately.
