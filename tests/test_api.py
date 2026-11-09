@@ -22,7 +22,7 @@ async def _exercise_api():
     ) as client:
         catalog = await client.get("/nodes")
         assert catalog.status_code == 200
-        assert len(catalog.json()) == 24
+        assert len(catalog.json()) == 30
 
         response = await client.post(
             "/run",
@@ -129,3 +129,44 @@ def test_http_credentials_must_reference_environment():
     )
     with pytest.raises(NodeError, match="secret"):
         asyncio.run(http_request([], context))
+
+
+def test_workflow_save_strips_pasted_api_key(monkeypatch):
+    with tempfile.TemporaryDirectory() as directory:
+        monkeypatch.setenv("N3RF_DB_PATH", f"{directory}/saved.sqlite3")
+        asyncio.run(_exercise_save_strip())
+
+
+async def _exercise_save_strip():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        created = await client.post(
+            "/workflows",
+            json={
+                "name": "Pasted",
+                "nodes": [
+                    {
+                        "id": "ai",
+                        "type": "ask_ai",
+                        "params": {
+                            "provider": "custom",
+                            "base_url": "https://provider.invalid/v1",
+                            "model": "test-model",
+                            "api_key_env": "TEST_KEY",
+                            "api_key": "paste-secret-never-saved",
+                            "prompt": "hi",
+                        },
+                    }
+                ],
+                "edges": [],
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert "paste-secret-never-saved" not in created.text
+        workflow_id = created.json()["id"]
+        saved = (await client.get(f"/workflows/{workflow_id}")).json()
+        assert "paste-secret-never-saved" not in str(saved)
+        params = saved["nodes"][0]["params"]
+        assert "api_key" not in params
+        assert params["api_key_env"] == "TEST_KEY"

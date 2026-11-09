@@ -18,7 +18,7 @@ def list_models() -> list[dict[str, Any]]:
 
 @router.post("", status_code=201)
 def save_model(request: ModelProfileRequest) -> dict[str, Any]:
-    profile = request.model_dump()
+    profile = request.model_dump(exclude={"api_key"})
     profile["id"] = request.id or f"model_{uuid.uuid4().hex[:12]}"
     return store.save_model_profile(profile)
 
@@ -26,7 +26,9 @@ def save_model(request: ModelProfileRequest) -> dict[str, Any]:
 @router.post("/test")
 async def test_model(request: ModelProfileRequest) -> dict[str, Any]:
     try:
-        return await test_connection(request.base_url, request.api_key_env, request.model)
+        return await test_connection(
+            request.base_url, request.api_key_env, request.model, request.api_key
+        )
     except NodeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 

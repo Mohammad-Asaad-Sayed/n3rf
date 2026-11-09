@@ -27,7 +27,9 @@ allowed = {"abs": abs, "all": all, "any": any, "bool": bool, "dict": dict,
            "enumerate": enumerate, "float": float, "int": int, "len": len,
            "list": list, "max": max, "min": min, "range": range, "round": round,
            "sorted": sorted, "str": str, "sum": sum, "zip": zip, "True": True,
-           "False": False, "None": None}
+           "False": False, "None": None, "ValueError": ValueError,
+           "TypeError": TypeError, "KeyError": KeyError, "IndexError": IndexError,
+           "Exception": Exception, "RuntimeError": RuntimeError}
 def safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     if name not in {"json", "math", "statistics", "re", "datetime", "collections"}:
         raise ImportError("sandbox blocked import: " + name)

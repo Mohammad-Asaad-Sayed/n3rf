@@ -38,7 +38,12 @@ boundary for untrusted users or multi-tenant hosting. Do not expose the applicat
 untrusted network or allow untrusted people to submit Code-node workflows.
 
 Provider API keys should be supplied to the FastAPI process through environment variables.
-Model profiles store the variable name, not the secret. Treat workflow data, run history,
+Model profiles store the variable name, not the secret. As a second mode, an Ask AI
+node (or a model connection test) accepts a pasted key for that one request only:
+it is kept in memory, sent to the provider, and never written to SQLite, run
+history, logs, or the browser draft (the env-var name is left blank to use an
+environment variable, and a pasted key takes precedence for that request).
+Treat workflow data, run history,
 uploaded files, and the SQLite database as potentially sensitive; secure access to the host and
 back up or delete this data according to your needs.
 

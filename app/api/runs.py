@@ -18,6 +18,7 @@ async def run_unsaved(request: RunRequest) -> dict[str, Any]:
             request.edges,
             request.input_override,
             target_node_id=request.target_node_id,
+            test_rows=request.test_rows,
         )
     except NodeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

@@ -1,0 +1,6 @@
+company,website,industry,country,headcount_band,funding_year
+Apple,https://www.apple.com,technology,US,100001+,2001
+Microsoft,https://www.microsoft.com,technology,US,100001+,1986
+Shopify,https://www.shopify.com,ecommerce,CA,5001-10000,2006
+Notion,https://www.notion.so,software,US,501-1000,2016
+Stripe,https://stripe.com,fintech,US,5001-10000,2010

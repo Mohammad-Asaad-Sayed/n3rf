@@ -1,10 +1,18 @@
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import models_router, nodes_router, runs_router, upload_router, workflows_router
+from app.api import (
+    models_router,
+    nodes_router,
+    pricing_router,
+    runs_router,
+    upload_router,
+    workflows_router,
+)
 
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = APP_DIR.parent
@@ -21,9 +29,20 @@ def create_app() -> FastAPI:
     )
     application.include_router(nodes_router)
     application.include_router(models_router)
+    application.include_router(pricing_router)
     application.include_router(runs_router)
     application.include_router(workflows_router)
     application.include_router(upload_router)
+
+    # Micro-SaaS split hosting: static frontend may call this API cross-origin.
+    # Secrets never travel in URLs; model keys live only in this process env.
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+    )
 
     if FRONTEND_ASSETS.is_dir():
         application.mount(
@@ -33,8 +52,7 @@ def create_app() -> FastAPI:
         )
     application.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-    @application.get("/", include_in_schema=False)
-    def editor() -> FileResponse:
+    def _index_response() -> FileResponse:
         index = FRONTEND_DIST / "index.html"
         if not index.is_file():
             raise HTTPException(
@@ -45,6 +63,18 @@ def create_app() -> FastAPI:
                 ),
             )
         return FileResponse(index)
+
+    @application.get("/", include_in_schema=False)
+    def editor() -> FileResponse:
+        return _index_response()
+
+    @application.get("/app", include_in_schema=False)
+    def app_home() -> FileResponse:
+        return _index_response()
+
+    @application.get("/app/{rest:path}", include_in_schema=False)
+    def app_subpath(rest: str) -> FileResponse:
+        return _index_response()
 
     @application.get("/eva01-tokens.css", include_in_schema=False)
     def editor_tokens() -> FileResponse:

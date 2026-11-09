@@ -32,11 +32,24 @@ def get_workflow(workflow_id: str) -> dict[str, Any] | None:
 
 
 def save_workflow(workflow_id: str, name: str, data: dict[str, Any]) -> dict[str, Any]:
+    # Ephemeral BYOK: a pasted api_key is per-request only and is never persisted.
+    def _sanitized_nodes() -> list[dict[str, Any]]:
+        sanitized = []
+        for node in data.get("nodes", []):
+            safe: dict[str, Any] = {
+                key: node[key]
+                for key in ("id", "type", "node", "params", "position")
+                if key in node
+            }
+            if isinstance(safe.get("params"), dict):
+                safe["params"] = {
+                    key: value for key, value in safe["params"].items() if key != "api_key"
+                }
+            sanitized.append(safe)
+        return sanitized
+
     payload = {
-        "nodes": [
-            {key: node[key] for key in ("id", "type", "node", "params", "position") if key in node}
-            for node in data.get("nodes", [])
-        ],
+        "nodes": _sanitized_nodes(),
         "edges": [
             {
                 key: edge[key]
@@ -103,14 +116,20 @@ def _model_profile_payload(record: ModelProfileRecord) -> dict[str, Any]:
 
 
 def save_model_profile(profile: dict[str, str]) -> dict[str, Any]:
+    # Ephemeral BYOK: never persist a pasted api_key — only the env-var name.
+    clean = {
+        key: profile[key]
+        for key in ("id", "name", "base_url", "model", "api_key_env")
+        if key in profile
+    }
     with Session(get_engine()) as db, db.begin():
-        record = db.get(ModelProfileRecord, profile["id"])
+        record = db.get(ModelProfileRecord, clean["id"])
         if record is None:
-            record = ModelProfileRecord(**profile)
+            record = ModelProfileRecord(**clean)
             db.add(record)
         else:
             for key in ("name", "base_url", "model", "api_key_env"):
-                setattr(record, key, profile[key])
+                setattr(record, key, clean[key])
     with Session(get_engine()) as db:
         saved = db.get(ModelProfileRecord, profile["id"])
         if saved is None:

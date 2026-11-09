@@ -44,11 +44,15 @@ export function NodeLibrary({
                   <button
                     className="catalog-node"
                     key={spec.id}
+                    title={spec.description}
                     style={{ "--node-color": groupTokens[spec.group] } as CSSProperties}
                     onClick={() => onAdd(spec.id)}
                   >
                     <span className="catalog-glyph"><NodeIcon /></span>
-                    <span>{spec.name}</span>
+                    <span className="catalog-node-copy">
+                      <span className="catalog-node-name">{spec.name}</span>
+                      <span className="catalog-node-description">{spec.description}</span>
+                    </span>
                     <Plus className="catalog-add" />
                   </button>
                 );

@@ -17,7 +17,7 @@ from app.registry import node
     "http_request",
     "HTTP Request",
     group="transform",
-    description="Call a generic HTTP endpoint.",
+    description="Call any web address. Use it to reach services n3rf doesn't bundle.",
     params=[
         Param(
             "method",
@@ -30,13 +30,25 @@ from app.registry import node
             "url",
             "string",
             "URL",
-            default="",
+            default="https://example.com/api/{{company}}",
             required=True,
             expression=True,
-            hint="Type @ to insert a field from each incoming row.",
+            hint=(
+                "Runs per row when per-row is on. @ picks a field. "
+                "Example: https://example.com/api/{{company}}"
+            ),
         ),
-        Param("headers", "json", "Headers", default={}),
-        Param("body", "json", "Body", default={}),
+        Param(
+            "headers",
+            "json",
+            "Headers",
+            default={},
+            hint=(
+                "JSON object. Sensitive values must be ${ENV:NAME}, "
+                'e.g. {"Authorization":"Bearer ${ENV:MY_KEY}"}.'
+            ),
+        ),
+        Param("body", "json", "Body", default={}, hint="JSON sent for POST, PUT, PATCH."),
         Param("per_row", "boolean", "Call once per row", default=True),
     ],
 )

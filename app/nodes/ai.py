@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 from typing import Any
+
+import httpx
 
 from app.contracts import Item, ItemList
 from app.errors import NodeError
@@ -11,12 +14,129 @@ from app.llm import LLMClient, SchemaValidationError
 from app.params import Param
 from app.registry import node
 
+# Provider presets (Bricks-style): picking a provider fills in the endpoint,
+# default model and key name. "custom" keeps the user-typed base URL so any
+# OpenAI-compatible endpoint still works.
+PROVIDERS: dict[str, dict[str, str]] = {
+    "openai": {
+        "base_url": "https://api.openai.com/v1",
+        "model": "gpt-4o-mini",
+        "api_key_env": "OPENAI_API_KEY",
+    },
+    "groq": {
+        "base_url": "https://api.groq.com/openai/v1",
+        "model": "gpt-oss-120b",
+        "api_key_env": "GROQ_API_KEY",
+    },
+    "gemini": {
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "model": "gemini-2.5-flash",
+        "api_key_env": "GEMINI_API_KEY",
+    },
+    "openrouter": {
+        "base_url": "https://openrouter.ai/api/v1",
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "api_key_env": "OPENROUTER_API_KEY",
+    },
+    "mistral": {
+        "base_url": "https://api.mistral.ai/v1",
+        "model": "mistral-small-latest",
+        "api_key_env": "MISTRAL_API_KEY",
+    },
+    "huggingface": {
+        "base_url": "https://router.huggingface.co/v1",
+        "model": "mistralai/Mistral-7B-Instruct-v0.3",
+        "api_key_env": "HUGGINGFACE_API_KEY",
+    },
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "model": "llama3.1:8b",
+        "api_key_env": "",
+    },
+    "cloudflare": {
+        "base_url": "",
+        "model": "@cf/meta/llama-3.3-70b-instruct",
+        "api_key_env": "CLOUDFLARE_API_TOKEN",
+    },
+    "custom": {
+        "base_url": "https://api.openai.com/v1",
+        "model": "gpt-4o-mini",
+        "api_key_env": "OPENAI_API_KEY",
+    },
+}
+
+PROVIDER_DEFAULT_BASE_URL = PROVIDERS["openai"]["base_url"]
+PROVIDER_DEFAULT_MODEL = PROVIDERS["openai"]["model"]
+PROVIDER_DEFAULT_ENV = PROVIDERS["openai"]["api_key_env"]
+
+
+def _resolve(ctx: Any) -> tuple[str, str, str, str, str]:
+    """Return (provider, base_url, api_key_env, model, api_key_override).
+
+    Preset defaults only apply when the inspector value is still at its
+    generic default — a user-typed value (or a saved workflow with a custom
+    endpoint) is always respected.
+    """
+    provider = ctx.param("provider", str, "openai") or "openai"
+    preset = PROVIDERS.get(provider, PROVIDERS["custom"])
+
+    base_url = ctx.param("base_url", str, PROVIDER_DEFAULT_BASE_URL) or ""
+    if provider == "custom":
+        if not base_url:
+            raise NodeError("Parameter 'base_url' is required for the Custom provider.")
+    elif base_url == PROVIDER_DEFAULT_BASE_URL:
+        base_url = preset["base_url"]
+    elif not base_url:
+        base_url = preset["base_url"]
+
+    model = ctx.param("model", str, PROVIDER_DEFAULT_MODEL) or ""
+    if model == PROVIDER_DEFAULT_MODEL and provider not in {"openai", "custom"}:
+        model = preset["model"]
+    elif not model:
+        model = preset["model"]
+    if not model:
+        raise NodeError("Parameter 'model' is required.")
+
+    api_key_env = ctx.param("api_key_env", str, PROVIDER_DEFAULT_ENV) or ""
+    if provider == "ollama":
+        api_key_env = ""
+    elif api_key_env == PROVIDER_DEFAULT_ENV and provider not in {"openai", "custom"}:
+        api_key_env = preset["api_key_env"]
+
+    api_key_override = (ctx.param("api_key", str, "") or "").strip()
+    if provider == "ollama":
+        api_key_override = ""
+
+    return provider, base_url, api_key_env, model, api_key_override
+
 
 def _client(ctx: Any) -> tuple[LLMClient, str]:
-    base_url = ctx.param("base_url", str, "https://api.openai.com/v1")
-    env_key = ctx.param("api_key_env", str, "OPENAI_API_KEY")
-    model = ctx.param("model", str, "gpt-4o-mini")
-    return LLMClient(base_url, env_key), model
+    _provider, base_url, api_key_env, model, api_key_override = _resolve(ctx)
+    return LLMClient(base_url, api_key_env, api_key_override=api_key_override), model
+
+
+async def _cloudflare_complete(
+    account_id: str,
+    model: str,
+    prompt: str,
+    api_key: str,
+) -> tuple[Any, int, int]:
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}"
+    headers = {"Authorization": f"Bearer {api_key}"}
+    body = {"messages": [{"role": "user", "content": prompt}]}
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        resp = await client.post(url, headers=headers, json=body)
+        if resp.status_code != 200:
+            raise NodeError(f"Cloudflare request failed: {resp.status_code} {resp.text[:500]}")
+        payload = resp.json()
+    if not payload.get("success", False):
+        raise NodeError(f"Cloudflare request failed: {payload.get('errors')}")
+    text = payload.get("result", {}).get("response", "")
+    try:
+        value = json.loads(text)
+    except (ValueError, TypeError):
+        value = {"value": text}
+    return value, 0, 0
 
 
 async def _fanout(items: ItemList, ctx: Any, callback: Any) -> ItemList:
@@ -53,14 +173,87 @@ async def _fanout(items: ItemList, ctx: Any, callback: Any) -> ItemList:
 
 
 _COMMON = [
-    Param("base_url", "string", "Base URL", default="https://api.openai.com/v1"),
+    Param(
+        "provider",
+        "select",
+        "Provider",
+        default="openai",
+        options=[
+            "openai",
+            "groq",
+            "gemini",
+            "openrouter",
+            "mistral",
+            "huggingface",
+            "ollama",
+            "cloudflare",
+            "custom",
+        ],
+        hint="Pick a provider. Model and key name fill in automatically.",
+    ),
+    Param("model", "string", "Model", default="gpt-4o-mini", required=True),
+    Param(
+        "base_url",
+        "string",
+        "Base URL",
+        default="https://api.openai.com/v1",
+        show_if={"param": "provider", "in": ["custom"]},
+        hint="Only for Custom. Any OpenAI-compatible endpoint works.",
+    ),
     Param(
         "api_key_env",
         "string",
         "API key environment variable",
         default="OPENAI_API_KEY",
+        show_if={
+            "param": "provider",
+            "in": [
+                "openai",
+                "groq",
+                "gemini",
+                "openrouter",
+                "mistral",
+                "huggingface",
+                "cloudflare",
+                "custom",
+            ],
+        },
+        hint=(
+            "Just the env-var name. The secret stays in the terminal that runs "
+            "uvicorn. Or paste a key below for this run only."
+        ),
     ),
-    Param("model", "string", "Model", default="gpt-4o-mini", required=True),
+    Param(
+        "api_key",
+        "password",
+        "API key (paste — run only)",
+        default="",
+        show_if={
+            "param": "provider",
+            "in": [
+                "openai",
+                "groq",
+                "gemini",
+                "openrouter",
+                "mistral",
+                "huggingface",
+                "cloudflare",
+                "custom",
+            ],
+        },
+        hint=(
+            "Paste a key for this run only — never saved or logged. "
+            "Leave blank to use the env var above."
+        ),
+    ),
+    Param(
+        "account_id",
+        "string",
+        "Account ID",
+        default="",
+        show_if={"param": "provider", "in": ["cloudflare"]},
+        hint="Cloudflare dashboard > Account ID.",
+    ),
     Param(
         "prompt",
         "textarea",
@@ -68,8 +261,8 @@ _COMMON = [
         default="",
         expression=True,
         hint=(
-            "Each incoming row is automatically included in the prompt. "
-            "Type @ to insert a specific field."
+            "Each incoming row is automatically included. "
+            '@ picks a field, e.g. "Summarize {{company}}".'
         ),
     ),
     Param("concurrency", "number", "Concurrency", default=8),
@@ -85,13 +278,22 @@ _COMMON = [
 
 
 @node(
-    "llm_structured",
-    "LLM Structured",
+    "ask_ai",
+    "Ask AI",
     group="ai",
-    description="Generate schema-validated JSON from each incoming row.",
+    description=(
+        "Ask one model to enrich each row. Pick any provider in the inspector "
+        "— model and key name fill in automatically. Adds its JSON fields to each row."
+    ),
     params=_COMMON
     + [
-        Param("schema", "json", "Output schema", default={}),
+        Param(
+            "schema",
+            "json",
+            "Output schema",
+            default={},
+            hint="Leave {} for free JSON. Set a schema to validate the model's reply.",
+        ),
         Param(
             "mode",
             "select",
@@ -101,13 +303,42 @@ _COMMON = [
         ),
     ],
 )
-async def llm_structured(items: ItemList, ctx: Any) -> ItemList:
+async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
     if not items:
         return []
-    client, model = _client(ctx)
+    provider, base_url, api_key_env, model, api_key_override = _resolve(ctx)
     schema = ctx.param("schema", dict, {})
     template = ctx.param("prompt", str, "")
     mode = ctx.param("mode", str, "per_input")
+
+    if provider == "cloudflare":
+        account_id = (ctx.param("account_id", str, "") or "").strip()
+        if not account_id:
+            raise NodeError("Parameter 'account_id' is required for the Cloudflare provider.")
+        if api_key_override:
+            api_key = api_key_override
+        else:
+            if not api_key_env:
+                raise NodeError("Environment variable 'CLOUDFLARE_API_TOKEN' is not set.")
+            import os
+
+            api_key = os.environ.get(api_key_env, "")
+            if not api_key:
+                raise NodeError(f"Environment variable '{api_key_env}' is not set.")
+
+        async def cloudflare_call(index: int, item: Item) -> ItemList:
+            prompt = f"{render(template, item['json'])}\n\nInput row:\n{item['json']!r}"
+            ctx.metrics["llm_calls"] += 1
+            value, _tin, _tout = await _cloudflare_complete(account_id, model, prompt, api_key)
+            if mode == "expand_arrays" and isinstance(value, list):
+                return [{"json": {"value": row}, "meta": dict(item["meta"])} for row in value]
+            if not isinstance(value, dict):
+                value = {"value": value}
+            return [{"json": {**item["json"], **value}, "meta": dict(item["meta"])}]
+
+        return await _fanout(items, ctx, cloudflare_call)
+
+    client = LLMClient(base_url, api_key_env, api_key_override=api_key_override)
 
     async def call(index: int, item: Item) -> ItemList:
         prompt = f"{render(template, item['json'])}\n\nInput row:\n{item['json']!r}"
@@ -141,16 +372,17 @@ async def llm_structured(items: ItemList, ctx: Any) -> ItemList:
     "ai_filter",
     "AI Filter",
     group="ai",
-    description="Keep rows matching an AI criterion.",
+    description="Ask your model which rows to keep. Drops the rest. Costs one model call per row.",
     params=_COMMON
     + [
         Param(
             "criterion",
             "textarea",
             "Keep rows that",
-            default="",
+            default="are software companies",
             required=True,
             expression=True,
+            hint=('Rule to judge each row. @ picks a field. Example: "{{industry}} is fintech".'),
         )
     ],
 )
@@ -178,10 +410,19 @@ async def ai_filter(items: ItemList, ctx: Any) -> ItemList:
     "ai_ranker",
     "AI Ranker",
     group="ai",
-    description="Score rows and keep the top results.",
+    description=(
+        "Score each row and keep the top N. Adds a score field. Costs one model call per row."
+    ),
     params=_COMMON
     + [
-        Param("criterion", "textarea", "Rank by", default="", expression=True),
+        Param(
+            "criterion",
+            "textarea",
+            "Rank by",
+            default="how relevant this row is",
+            expression=True,
+            hint="What matters. @ picks a field. 1 = best match, 0 = worst.",
+        ),
         Param("top_n", "number", "Top rows", default=10),
         Param("score_field", "string", "Score field", default="score"),
     ],
@@ -218,11 +459,24 @@ async def ai_ranker(items: ItemList, ctx: Any) -> ItemList:
     "semantic_dedup",
     "Semantic Dedup",
     group="ai",
-    description="Collapse semantically similar rows.",
+    description="Collapse rows whose text means the same thing. Keeps the first of each group.",
     params=_COMMON
     + [
-        Param("field", "string", "Text field", default="text", required=True),
-        Param("threshold", "number", "Similarity threshold", default=0.9),
+        Param(
+            "field",
+            "string",
+            "Text field",
+            default="text",
+            required=True,
+            hint="Field to compare. Example: company or text.",
+        ),
+        Param(
+            "threshold",
+            "number",
+            "Similarity threshold",
+            default=0.9,
+            hint="0.9 = very similar. Lower merges more rows.",
+        ),
         Param("embedding_model", "string", "Embedding model", default="text-embedding-3-small"),
     ],
 )

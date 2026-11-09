@@ -11,6 +11,32 @@ from app.errors import NodeError
 from app.params import validate_params
 from app.registry import NodeSpec, load_all
 
+# Legacy provider nodes now live inside Ask AI as a `provider` choice.
+# Saved workflows still referencing the old type ids migrate transparently.
+LEGACY_NODE_PROVIDERS: dict[str, str] = {
+    "llm_structured": "custom",
+    "groq_llm": "groq",
+    "gemini_llm": "gemini",
+    "openrouter_llm": "openrouter",
+    "mistral_llm": "mistral",
+    "huggingface_llm": "huggingface",
+    "ollama_llm": "ollama",
+    "cloudflare_llm": "cloudflare",
+}
+
+
+def migrate_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    migrated: list[dict[str, Any]] = []
+    for config in nodes:
+        kind = str(config.get("type", config.get("node", "")))
+        if kind in LEGACY_NODE_PROVIDERS:
+            params = dict(config.get("params", {}))
+            params.setdefault("provider", LEGACY_NODE_PROVIDERS[kind])
+            migrated.append({**config, "type": "ask_ai", "params": params})
+        else:
+            migrated.append(config)
+    return migrated
+
 
 @dataclass
 class RunContext:
@@ -93,6 +119,7 @@ async def run_workflow(
     *,
     input_override: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    nodes = migrate_nodes(nodes)
     registry = load_all()
     ordered = topological_order(nodes, edges)
     specs = {}

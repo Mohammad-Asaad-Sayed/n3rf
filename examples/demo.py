@@ -15,8 +15,9 @@ NODES = [
     },
     {
         "id": "classify",
-        "type": "llm_structured",
+        "type": "ask_ai",
         "params": {
+            "provider": "custom",
             "model": "gpt-4o-mini",
             "prompt": "Classify this company using its notes.",
             "schema": {

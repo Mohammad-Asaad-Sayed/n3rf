@@ -23,21 +23,21 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
       code, rows, file), raising `NodeError` with the field name. · FR-16 · 4h
 - [x] **T-004** `params.py`: `resolve_show_if(params)` returning the effective visible set, used
       by both validation and `GET /nodes`. · FR-07 · 2h
-- [ ] **T-005** `tests/test_params.py`: coercion matrix, required, json parse failure, number
+- [x] **T-005** `tests/test_params.py`: coercion matrix, required, json parse failure, number
       out of range, `show_if` on/off. · FR-16 · 3h
 
 **Registry**
 
 - [x] **T-006** `registry.py`: `NodeSpec`, `@node(...)` decorator, module-level `REGISTRY`,
       `load_all()`. · FR-01 · 3h
-- [ ] **T-007** `tests/test_registry.py`: duplicate id rejected, `load_all()` idempotent, every
+- [x] **T-007** `tests/test_registry.py`: duplicate id rejected, `load_all()` idempotent, every
       node has a group and a description. · FR-01 · 1h
 
 **Expressions**
 
 - [x] **T-008** `expressions.py`: `ast` parser, node allowlist, curated function table, `_Safe`
       wrapper, template-vs-interpolation split. · FR-23 · 6h
-- [ ] **T-009** `tests/test_expressions.py` (security): imports, dunder access, `__class__`,
+- [x] **T-009** `tests/test_expressions.py` (security): imports, dunder access, `__class__`,
       attribute traversal, comprehension, lambda, unknown call — all must raise. · FR-23 · 4h
 
 **Engine**
@@ -48,7 +48,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
       · FR-17 · 3h
 - [x] **T-012** `engine.py`: batch walk, `_call` awaiting only awaitables, per-node timing,
       error policy (`error_item` / `skip` / `fail`). · FR-12, FR-15 · 5h
-- [ ] **T-013** `tests/test_engine.py`: linear, diamond, disconnected node, raising node, empty
+- [x] **T-013** `tests/test_engine.py`: linear, diamond, disconnected node, raising node, empty
       output, `ctx.inputs` ordering A before B. · FR-12 · 5h
 
 **Nodes — input (7)** · FR-18
@@ -76,10 +76,10 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] **T-029** `merge` — `inputs=2`; append and merge-by-key modes. · 4h
 - [x] **T-030** `compare_datasets` — `inputs=2`; inner / left_only / right_only on a key. · 4h
 - [x] **T-031** `dedupe` — field, keep first/last. · 2h
-- [ ] **T-032** `tests/test_nodes.py` — happy path, empty input, one bad param for **every**
+- [x] **T-032** `tests/test_nodes.py` — happy path, empty input, one bad param for **every**
       node above. · 6h
 
-**M0 exit** — [ ] the 6-node pipeline test passes; suite offline under 10s; `ruff` clean.
+**M0 exit** — [x] the 6-node pipeline test passes; suite offline under 10s; `ruff` clean.
 
 ---
 
@@ -95,7 +95,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
       the validation error back to the model. · FR-20 · 6h
 - [x] **T-036** `tests/mock_provider.py`: deterministic responses, injectable malformed output,
       injectable 429, latency simulation. · NFR-04 · 4h
-- [ ] **T-037** `tests/test_llm.py`: repair loop repairs; second failure applies the error
+- [x] **T-037** `tests/test_llm.py`: repair loop repairs; second failure applies the error
       policy; concurrency cap observed; tokens accumulated. · FR-20 · 4h
 
 **AI nodes** · FR-20, FR-21
@@ -113,7 +113,7 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
       ctypes / file writes, `RLIMIT_AS` / `RLIMIT_CPU` / `RLIMIT_NPROC`. · 6h
 - [x] **T-044** `nodes/code.py` — `items` in, `return` a list out; timeout param; readable error
       when the sandbox refuses. · 3h
-- [ ] **T-045** `tests/test_sandbox.py`: socket open, file write, `os.system`, infinite loop,
+- [x] **T-045** `tests/test_sandbox.py`: socket open, file write, `os.system`, infinite loop,
       memory bomb — each must fail cleanly and fast. · 5h
 
 **Demo**
@@ -232,7 +232,7 @@ down rather than skipped.
 
 Recorded so nobody re-litigates them mid-phase. Each needs a decision, not a commit.
 
-- Undo/redo, multi-select, copy/paste, minimap, auto-layout · the interaction model is not
+- Multi-select, copy/paste, minimap, auto-layout · the interaction model is not
   settled enough to protect with history.
 - Source/sink integrations (Sheets, Slack, Notion, Supabase) · one HTTP node covers them.
 - Persistent dedup / lookup / upsert · needs Redis.
@@ -252,4 +252,15 @@ comparable.
 
 ```
 YYYY-MM-DD  T-0xx  one line on what shipped
+```
+
+2026-11-08  T-005  tests/test_params.py: full coercion matrix, required, json/rows failures, show_if
+2026-11-08  T-007  tests/test_registry.py: duplicate id, idempotent load_all, group/description
+2026-11-08  T-009  tests/test_expressions.py: 24 security cases (imports, dunder, traversal, calls)
+2026-11-08  T-013  tests/test_engine.py: linear, diamond, disconnected, raising, empty, A-before-B
+2026-11-08  T-032  tests/test_nodes.py: triples for all input/transform + http/code/ai/search
+2026-11-08  T-037  tests/test_llm.py: second-failure policies (fail/skip/error_item), concurrency cap, tokens
+2026-11-08  T-045  tests/test_sandbox.py: socket open, file write, os.system, subprocess/ctypes, memory bomb, code wrapper
+2026-11-08  docs  TASKS.md: ticked T-005/T-007/T-009/T-013/T-032/T-037/T-045 + M0 exit; suite 118 passed in 4.33s
+2026-11-08  editor  canvas undo/redo: Ctrl+Z / Ctrl+Shift+Z, Undo/Redo topbar buttons; nodes+edges history, native text undo preserved in fields
 ```

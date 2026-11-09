@@ -10,19 +10,26 @@ from app.params import Param
 from app.registry import node
 
 
+def _is_truthy(val: Any) -> bool:
+    if isinstance(val, str) and val.strip().lower() in ("false", "0", "null", "none"):
+        return False
+    return bool(val)
+
+
 @node(
     "filter",
     "Filter",
     group="transform",
-    description="Keep rows whose condition is true.",
+    description="Keep only rows that match a condition. Drops the rest.",
     params=[
         Param(
             "condition",
             "string",
             "Condition",
-            default="{{ $json.active }}",
+            default="active == true",
             required=True,
             expression=True,
+            hint='Example: "score >= 5" or "active == true". @ picks a field.',
         ),
         Param("keep_empty", "boolean", "Keep rows on expression error", default=False),
     ],
@@ -33,7 +40,7 @@ def filter_node(items: ItemList, ctx: Any) -> ItemList:
     kept = []
     for item in items:
         try:
-            if evaluate(condition, item["json"]):
+            if _is_truthy(evaluate(condition, item["json"])):
                 kept.append(item)
         except ExpressionError:
             if keep_empty:
@@ -42,12 +49,106 @@ def filter_node(items: ItemList, ctx: Any) -> ItemList:
 
 
 @node(
+    "if_else",
+    "If / Else",
+    group="transform",
+    description="If a row matches, set the true fields; otherwise set the false fields.",
+    params=[
+        Param(
+            "condition",
+            "string",
+            "If",
+            default="active == true",
+            required=True,
+            expression=True,
+            hint="Is this true for the row? Example: score >= 5",
+        ),
+        Param(
+            "output",
+            "select",
+            "Keep",
+            default="all_rows",
+            options=["all_rows", "true_only", "false_only"],
+            hint="Keep both branches, or only one.",
+        ),
+        Param(
+            "true_fields",
+            "rows",
+            "If true, set",
+            default=[{"name": "branch", "value": "true"}],
+            columns=[
+                {"key": "name", "label": "Field", "type": "string"},
+                {"key": "value", "label": "Value", "type": "string", "expression": True},
+            ],
+            show_if={"param": "output", "in": ["all_rows", "true_only"]},
+            hint="Example: branch = high",
+        ),
+        Param(
+            "false_fields",
+            "rows",
+            "If false, set",
+            default=[{"name": "branch", "value": "false"}],
+            columns=[
+                {"key": "name", "label": "Field", "type": "string"},
+                {"key": "value", "label": "Value", "type": "string", "expression": True},
+            ],
+            show_if={"param": "output", "in": ["all_rows", "false_only"]},
+            hint="Example: branch = low",
+        ),
+        Param(
+            "keep_empty",
+            "boolean",
+            "On error, keep the row",
+            default=False,
+            hint="Off drops rows with a bad condition; on treats them as false.",
+        ),
+    ],
+)
+def if_else(items: ItemList, ctx: Any) -> ItemList:
+    condition = ctx.param("condition", str, required=True)
+    output_mode = ctx.param("output", str, "all_rows")
+    if output_mode not in ("all_rows", "true_only", "false_only"):
+        raise NodeError(f"Parameter 'output' has an unsupported value '{output_mode}'.")
+    true_fields = ctx.param("true_fields", list, []) or []
+    false_fields = ctx.param("false_fields", list, []) or []
+    keep_empty = ctx.param("keep_empty", bool, False)
+    output: ItemList = []
+    for item in items:
+        try:
+            matched = _is_truthy(evaluate(condition, item["json"]))
+        except ExpressionError:
+            if not keep_empty:
+                continue
+            matched = False
+        if output_mode == "true_only" and not matched:
+            continue
+        if output_mode == "false_only" and matched:
+            continue
+        fields = true_fields if matched else false_fields
+        row = dict(item["json"])
+        for field in fields:
+            name = field.get("name")
+            if not name:
+                raise NodeError("Every field needs a name.")
+            row[name] = render(field.get("value", ""), row)
+        output.append({"json": row, "meta": dict(item["meta"])})
+    return output
+
+
+@node(
     "sort",
     "Sort",
     group="transform",
-    description="Sort rows by a field.",
+    description="Order rows by a field, smallest first or largest first.",
     params=[
-        Param("field", "string", "Field", default="", required=True),
+        Param(
+            "field",
+            "string",
+            "Field",
+            default="",
+            required=True,
+            hint="Field to sort by. Example: company or score.",
+        ),
         Param("direction", "select", "Direction", default="asc", options=["asc", "desc"]),
         Param("numeric", "boolean", "Compare as numbers", default=False),
     ],
@@ -73,7 +174,7 @@ def sort_node(items: ItemList, ctx: Any) -> ItemList:
     "limit",
     "Limit",
     group="transform",
-    description="Keep a range of rows.",
+    description="Keep the first N rows, or skip N then keep M.",
     params=[
         Param("max", "number", "Maximum rows", default=100),
         Param("offset", "number", "Offset", default=0),
@@ -90,18 +191,18 @@ def limit(items: ItemList, ctx: Any) -> ItemList:
     "set_fields",
     "Set Fields",
     group="transform",
-    description="Set fields on every row.",
+    description="Add or overwrite fields on every row. Use @ to copy another field.",
     params=[
         Param(
             "fields",
             "rows",
             "Fields",
-            default=[],
+            default=[{"name": "label", "value": "{{company}} review"}],
             columns=[
                 {"key": "name", "label": "Name", "type": "string"},
                 {"key": "value", "label": "Value", "type": "string", "expression": True},
             ],
-            hint="Type @ to insert a field from each incoming row.",
+            hint="@ picks a field. Example value: {{company}} review",
         )
     ],
 )
@@ -123,8 +224,17 @@ def set_fields(items: ItemList, ctx: Any) -> ItemList:
     "remove_fields",
     "Remove Fields",
     group="transform",
-    description="Remove comma-separated fields.",
-    params=[Param("fields", "string", "Fields", default="", required=True)],
+    description="Drop fields from every row. Handy before export.",
+    params=[
+        Param(
+            "fields",
+            "string",
+            "Fields",
+            default="",
+            required=True,
+            hint="Comma-separated field names. Example: score, old_field",
+        )
+    ],
 )
 def remove_fields(items: ItemList, ctx: Any) -> ItemList:
     fields = {field.strip() for field in ctx.param("fields", str, required=True).split(",")}
@@ -141,17 +251,18 @@ def remove_fields(items: ItemList, ctx: Any) -> ItemList:
     "rename_fields",
     "Rename Fields",
     group="transform",
-    description="Rename row fields.",
+    description="Rename fields, e.g. name → company. Values move with the field.",
     params=[
         Param(
             "fields",
             "rows",
             "Renames",
-            default=[],
+            default=[{"from": "name", "to": "company"}],
             columns=[
                 {"key": "from", "label": "From", "type": "string"},
                 {"key": "to", "label": "To", "type": "string"},
             ],
+            hint="One row per rename. Example: name → company.",
         )
     ],
 )
@@ -172,14 +283,20 @@ def rename_fields(items: ItemList, ctx: Any) -> ItemList:
     "aggregate",
     "Aggregate",
     group="transform",
-    description="Group and aggregate rows.",
+    description="Group rows and summarize each group (count, sum, average).",
     params=[
-        Param("group_by", "string", "Group by field", default=""),
+        Param(
+            "group_by",
+            "string",
+            "Group by field",
+            default="",
+            hint="Field to group by. Leave blank for one total row. Example: industry.",
+        ),
         Param(
             "fields",
             "rows",
             "Aggregations",
-            default=[],
+            default=[{"field": "score", "op": "avg", "as": "avg_score"}],
             columns=[
                 {"key": "field", "label": "Field", "type": "string"},
                 {
@@ -190,6 +307,7 @@ def rename_fields(items: ItemList, ctx: Any) -> ItemList:
                 },
                 {"key": "as", "label": "Output field", "type": "string"},
             ],
+            hint="Example row: field score, operation avg, output avg_score.",
         ),
     ],
 )
@@ -232,9 +350,16 @@ def aggregate(items: ItemList, ctx: Any) -> ItemList:
     "expand_arrays",
     "Expand Arrays",
     group="transform",
-    description="Create one row per array value.",
+    description="Turn one row with a list into many rows, one per list item.",
     params=[
-        Param("field", "string", "Array field", default="", required=True),
+        Param(
+            "field",
+            "string",
+            "Array field",
+            default="",
+            required=True,
+            hint="List-valued field to expand. Example: tags or scores.",
+        ),
         Param("max_output_rows", "number", "Maximum output rows", default=500),
     ],
 )
@@ -257,7 +382,7 @@ def expand_arrays(items: ItemList, ctx: Any) -> ItemList:
     "merge",
     "Merge",
     group="transform",
-    description="Append or merge two inputs by key.",
+    description="Combine two inputs: stack them, or join them on a match field.",
     inputs=2,
     params=[
         Param(
@@ -266,6 +391,7 @@ def expand_arrays(items: ItemList, ctx: Any) -> ItemList:
             "Mode",
             default="append",
             options=["append", "merge_by_key"],
+            hint="append = stack both lists. merge_by_key = join on Match field.",
         ),
         Param(
             "key",
@@ -273,6 +399,7 @@ def expand_arrays(items: ItemList, ctx: Any) -> ItemList:
             "Match field",
             default="",
             show_if={"param": "mode", "in": ["merge_by_key"]},
+            hint="Field present in both inputs. Example: company.",
         ),
     ],
 )
@@ -296,10 +423,17 @@ def merge(items: ItemList, ctx: Any) -> ItemList:
     "compare_datasets",
     "Compare Datasets",
     group="transform",
-    description="Compare inputs by a key.",
+    description="Find rows that are in both inputs, or only in one. Needs two inputs.",
     inputs=2,
     params=[
-        Param("key", "string", "Match field", default="", required=True),
+        Param(
+            "key",
+            "string",
+            "Match field",
+            default="",
+            required=True,
+            hint="Field present in both inputs. Example: company.",
+        ),
         Param(
             "mode",
             "select",
@@ -325,9 +459,16 @@ def compare_datasets(items: ItemList, ctx: Any) -> ItemList:
     "dedupe",
     "Deduplicate",
     group="transform",
-    description="Keep the first or last row for a field.",
+    description="Keep one row per field value — drops duplicates.",
     params=[
-        Param("field", "string", "Field", default="", required=True),
+        Param(
+            "field",
+            "string",
+            "Field",
+            default="",
+            required=True,
+            hint="Rows with the same value here collapse to one. Example: company.",
+        ),
         Param("keep", "select", "Keep", default="first", options=["first", "last"]),
     ],
 )

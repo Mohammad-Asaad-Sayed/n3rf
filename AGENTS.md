@@ -232,7 +232,8 @@ Copy this into the PR description and tick it honestly.
 | In-process asyncio, no Celery/Redis | Runs under ~60s; a queue is premature |
 | Vanilla JS single-file editor | The interaction model is still moving |
 | No integrations, one generic HTTP node | Out-integration n8n is a losing race |
-| No undo/redo, minimap, multi-select, mobile | None of them test the interaction model |
+| No minimap, multi-select, mobile | None of them test the interaction model |
+| Canvas undo/redo (nodes+edges only) | Structural history was the top papercut; param text keeps native input undo so keystroke safety holds |
 
 If you believe one of these is now wrong, write the argument in the PR body — do not quietly
 implement around it.

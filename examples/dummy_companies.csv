@@ -1,0 +1,13 @@
+company,website,industry,contact_name,email,country,headcount_band,funding_year
+Acme Analytics,https://example.com,software,Avery Chen,avery@acme.example.com,US,11-50,2023
+Northstar Retail Group,https://example.com,retail,Morgan Patel,morgan@northstar.example.com,US,51-200,2021
+Bluebird Health,https://example.com,health,Jordan Lee,jordan@bluebird.example.com,UK,201-500,2020
+Vertex IoT,https://example.com,hardware,Sofia Ramos,sofia@vertex.example.com,DE,11-50,2022
+Harbor Legal,https://example.com,legal,David Okafor,david@harbor.example.com,US,1-10,2019
+Forge Finance,https://example.com,fintech,Elena Petrova,elena@forge.example.com,IE,51-200,2022
+Pine Labs,https://example.com,sustainability,Rahul Nair,rahul@pinelabs.example.com,IN,11-50,2021
+Orbit Media,https://example.com,media,Li Wei,li@orbit.example.com,SG,51-200,2020
+Cobalt Systems,https://example.com,energy,Amara Diallo,amara@cobalt.example.com,FR,201-500,2019
+Meridian Logistics,https://example.com,logistics,Tom Becker,tom@meridian.example.com,NL,51-200,2018
+Fieldstone AI,https://example.com,ai,Marcus Webb,marcus@fieldstone.example.com,US,11-50,2023
+Brightline IoT,https://example.com,iot,Priya Nair,priya@brightline.example.com,CA,11-50,2022

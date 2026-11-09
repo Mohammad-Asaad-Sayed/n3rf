@@ -13,9 +13,15 @@ from app.sandbox import run_code
     "code",
     "Code",
     group="code",
-    description="Transform the batch in an isolated Python process.",
+    description="Write Python for anything the other nodes can't do. Runs sandboxed.",
     params=[
-        Param("code", "code", "Python", default="return items"),
+        Param(
+            "code",
+            "code",
+            "Python",
+            default="return items",
+            hint="items is the whole batch. Return the new list. Example: return items",
+        ),
         Param("timeout", "number", "Time limit", default=3, unit="seconds"),
         Param("max_output_rows", "number", "Maximum output rows", default=500),
     ],

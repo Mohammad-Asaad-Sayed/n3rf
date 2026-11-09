@@ -39,9 +39,7 @@ def test_expression_support_is_declared_in_public_param_metadata():
     )
     set_fields_value = next(column for column in set_fields["columns"] if column["key"] == "value")
     sort_field = next(param for param in catalog["sort"]["params"] if param["key"] == "field")
-    llm_prompt = next(
-        param for param in catalog["llm_structured"]["params"] if param["key"] == "prompt"
-    )
+    llm_prompt = next(param for param in catalog["ask_ai"]["params"] if param["key"] == "prompt")
     ai_filter_criterion = next(
         param for param in catalog["ai_filter"]["params"] if param["key"] == "criterion"
     )
@@ -57,7 +55,17 @@ def test_expression_support_is_declared_in_public_param_metadata():
 
 def test_expression_templates_and_security():
     assert evaluate("$json.score >= 4", {"score": 5})
+    assert evaluate("score >= 4", {"score": 5})
     assert render("Company {{ $json.name }}", {"name": "Acme"}) == "Company Acme"
+    assert render("Company {{name}}", {"name": "Acme"}) == "Company Acme"
+    assert evaluate("company", {"company": "Acme"}) == "Acme"
+    assert evaluate("user.name", {"user": {"name": "Ada"}}) == "Ada"
+    assert evaluate("len(tags)", {"tags": [1, 2, 3]}) == 3
+    # Spaced headers: both exact and snake_case resolve.
+    assert evaluate("Company Name", {"Company Name": "Acme"}) == "Acme"
+    assert evaluate("company_name", {"Company Name": "Acme"}) == "Acme"
+    assert render("Hi {{Company Name}}", {"Company Name": "Acme"}) == "Hi Acme"
+    assert evaluate("company_name >= 5", {"Company Name": 10}) is True
     for expression in (
         "__import__('os')",
         "$json.__class__",
@@ -203,10 +211,27 @@ def test_failed_node_returns_redacted_diagnostic_log(monkeypatch):
 
 def test_catalog_has_all_required_node_groups():
     catalog = load_all()
-    assert len(catalog) == 24
+    assert len(catalog) == 30
     assert {spec.group for spec in catalog.values()} == {
         "input",
         "transform",
+        "search",
         "ai",
         "code",
     }
+
+
+def test_csv_headers_normalize_to_snake_case():
+    nodes = [
+        {
+            "id": "source",
+            "type": "csv_file",
+            "params": {"text": "Company Name,Website URL,Company Name\nAcme,https://acme.com,dup"},
+            "delimiter": ",",
+        }
+    ]
+    result = asyncio.run(run_workflow(nodes, []))
+    assert result["status"] == "success"
+    assert result["output"] == [
+        {"company_name": "Acme", "website_url": "https://acme.com", "company_name_2": "dup"}
+    ]

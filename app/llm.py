@@ -25,14 +25,19 @@ class LLMClient:
         base_url: str,
         api_key_env: str,
         *,
+        api_key_override: str | None = None,
         timeout: float = 60.0,
         retries: int = 2,
     ):
         self.base_url = base_url.rstrip("/")
-        self.api_key = os.environ.get(api_key_env, "")
+        override = (api_key_override or "").strip()
+        if override:
+            self.api_key = override
+        else:
+            self.api_key = os.environ.get(api_key_env, "") if api_key_env else ""
         self.timeout = timeout
         self.retries = retries
-        if not self.api_key and api_key_env != "":
+        if not self.api_key and api_key_env != "" and not override:
             raise NodeError(f"Environment variable '{api_key_env}' is not set.")
 
     async def complete(
@@ -111,15 +116,21 @@ class LLMClient:
         raise NodeError("Embedding request failed after retries.")
 
 
-async def test_connection(base_url: str, api_key_env: str, model: str) -> dict[str, Any]:
+async def test_connection(
+    base_url: str, api_key_env: str, model: str, api_key_override: str = ""
+) -> dict[str, Any]:
     endpoint = httpx.URL(base_url.rstrip("/"))
     if endpoint.scheme not in {"http", "https"} or not endpoint.host:
         raise NodeError("Base URL must be an absolute HTTP or HTTPS URL.")
     if endpoint.username or endpoint.password:
         raise NodeError("Credentials must use an environment variable, not the URL.")
-    api_key = os.environ.get(api_key_env, "") if api_key_env else ""
-    if api_key_env and not api_key:
-        raise NodeError(f"Environment variable '{api_key_env}' is not set.")
+    override = (api_key_override or "").strip()
+    if override:
+        api_key = override
+    else:
+        api_key = os.environ.get(api_key_env, "") if api_key_env else ""
+        if api_key_env and not api_key:
+            raise NodeError(f"Environment variable '{api_key_env}' is not set.")
     headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:

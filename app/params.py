@@ -47,7 +47,7 @@ def _coerce(param: Param, value: Any) -> Any:
             raise NodeError(f"Parameter '{param.key}' is required.")
         return param.default
     try:
-        if param.type in {"string", "textarea", "code", "file"}:
+        if param.type in {"string", "textarea", "code", "file", "password"}:
             result = str(value)
         elif param.type == "number":
             if isinstance(value, bool):
