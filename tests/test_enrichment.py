@@ -7,7 +7,7 @@ import pytest
 from app.contracts import new_item
 from app.engine import RunContext
 from app.errors import NodeError
-from app.nodes.enrichment import jina_reader, serpapi_search, tavily_search
+from app.nodes.enrichment import _fanout, jina_reader, serpapi_search, tavily_search
 from tests.mock_provider import install_mock_provider
 
 
@@ -19,6 +19,19 @@ def _install_httpx(monkeypatch, handler):
         return original(*args, **kwargs)
 
     monkeypatch.setattr(httpx, "AsyncClient", mocked_client)
+
+
+def test_error_item_policy_logs_row_failure():
+    context = RunContext({"concurrency": 1})
+
+    async def fail(_index, _item):
+        raise NodeError("provider unavailable")
+
+    output = asyncio.run(_fanout([new_item({"company": "Acme"})], context, fail))
+
+    assert output[0]["json"] == {"company": "Acme"}
+    assert "error" in output[0]["meta"]
+    assert context.logs == ["Row 1: provider unavailable"]
 
 
 def test_tavily_search_happy_and_empty(monkeypatch):

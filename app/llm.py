@@ -41,7 +41,12 @@ class LLMClient:
             raise NodeError(f"Environment variable '{api_key_env}' is not set.")
 
     async def complete(
-        self, model: str, prompt: str, *, schema: dict[str, Any] | None = None
+        self,
+        model: str,
+        prompt: str,
+        *,
+        schema: dict[str, Any] | None = None,
+        web_search: bool = False,
     ) -> tuple[Any, int, int]:
         if not model:
             raise NodeError("Parameter 'model' is required.")
@@ -51,6 +56,17 @@ class LLMClient:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"} if schema else None,
+            "tools": (
+                [
+                    {
+                        "type": "openrouter:web_search",
+                        "parameters": {"engine": "native", "max_total_results": 5},
+                    }
+                ]
+                if web_search
+                else None
+            ),
+            "max_tool_calls": 3 if web_search else None,
         }
         body = {key: value for key, value in body.items() if value is not None}
         async with httpx.AsyncClient(timeout=self.timeout) as client:

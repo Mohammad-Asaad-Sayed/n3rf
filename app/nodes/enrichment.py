@@ -48,6 +48,7 @@ async def _fanout(items: ItemList, ctx: Any, callback: Any) -> ItemList:
             except Exception as exc:
                 if policy == "fail":
                     raise NodeError(f"Row {index + 1}: {exc}") from exc
+                ctx.logs.append(f"Row {index + 1}: {exc}")
                 if policy == "skip":
                     return []
                 return [

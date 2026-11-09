@@ -6,8 +6,83 @@ import pytest
 from app.contracts import new_item
 from app.engine import RunContext, migrate_nodes, run_workflow
 from app.errors import NodeError
-from app.nodes.ai import _fanout, ask_ai
+from app.llm import LLMClient
+from app.nodes.ai import _fanout, _resolve, ask_ai
 from tests.mock_provider import install_mock_provider
+
+
+def test_openrouter_provider_uses_free_router():
+    context = RunContext(
+        {
+            "provider": "openrouter",
+            "base_url": "https://api.openai.com/v1",
+            "api_key_env": "OPENAI_API_KEY",
+            "model": "gpt-4o-mini",
+        }
+    )
+    assert _resolve(context) == (
+        "openrouter",
+        "https://openrouter.ai/api/v1",
+        "OPENROUTER_API_KEY",
+        "openrouter/free",
+        "",
+    )
+
+
+def test_openrouter_web_search_is_opt_in_and_native(monkeypatch):
+    requests = install_mock_provider(monkeypatch, [{"answer": "plain"}, {"answer": "searched"}])
+    client = LLMClient("https://provider.invalid/v1", "")
+
+    asyncio.run(client.complete("test-model", "Question"))
+    asyncio.run(client.complete("test-model", "Question", web_search=True))
+
+    plain_body = json.loads(requests[0].content)
+    search_body = json.loads(requests[1].content)
+    assert "tools" not in plain_body
+    assert "max_tool_calls" not in plain_body
+    assert search_body["tools"] == [
+        {
+            "type": "openrouter:web_search",
+            "parameters": {"engine": "native", "max_total_results": 5},
+        }
+    ]
+    assert search_body["max_tool_calls"] == 3
+
+
+def test_ask_ai_limits_web_search_to_openrouter(monkeypatch):
+    requests = install_mock_provider(monkeypatch, [{"answer": "searched"}, {"answer": "plain"}])
+    common = {
+        "api_key_env": "",
+        "prompt": "Research {{product}}.",
+        "schema": {},
+        "web_search": True,
+        "concurrency": 1,
+        "max_output_rows": 10,
+        "on_error": "fail",
+        "mode": "per_input",
+    }
+    openrouter = RunContext(
+        {
+            **common,
+            "provider": "openrouter",
+            "base_url": "https://api.openai.com/v1",
+            "model": "gpt-4o-mini",
+        }
+    )
+    custom = RunContext(
+        {
+            **common,
+            "provider": "custom",
+            "base_url": "https://provider.invalid/v1",
+            "model": "test-model",
+        }
+    )
+
+    asyncio.run(ask_ai([new_item({"product": "Widget"})], openrouter))
+    asyncio.run(ask_ai([new_item({"product": "Widget"})], custom))
+
+    assert "tools" in json.loads(requests[0].content)
+    assert "tools" not in json.loads(requests[1].content)
 
 
 def test_structured_response_repair_and_usage(monkeypatch):
@@ -196,6 +271,8 @@ def test_second_schema_failure_applies_error_policy_error_item(monkeypatch):
     assert len(out) == 1
     assert out[0]["json"] == {"company": "Acme"}
     assert "error" in out[0]["meta"]
+    assert len(context.logs) == 1
+    assert context.logs[0].startswith("Row 1:")
 
 
 def test_concurrency_cap_observed():

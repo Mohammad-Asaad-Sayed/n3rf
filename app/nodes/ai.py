@@ -35,7 +35,7 @@ PROVIDERS: dict[str, dict[str, str]] = {
     },
     "openrouter": {
         "base_url": "https://openrouter.ai/api/v1",
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "model": "openrouter/free",
         "api_key_env": "OPENROUTER_API_KEY",
     },
     "mistral": {
@@ -156,6 +156,7 @@ async def _fanout(items: ItemList, ctx: Any, callback: Any) -> ItemList:
             except Exception as exc:
                 if policy == "fail":
                     raise NodeError(f"Row {index + 1}: {exc}") from exc
+                ctx.logs.append(f"Row {index + 1}: {exc}")
                 if policy == "skip":
                     return []
                 return [
@@ -295,6 +296,19 @@ _COMMON = [
             hint="Leave {} for free JSON. Set a schema to validate the model's reply.",
         ),
         Param(
+            "web_search",
+            "boolean",
+            "Web search",
+            default=False,
+            show_if={"param": "provider", "in": ["openrouter"]},
+            hint=(
+                "Enable OpenRouter's native web-search tool. "
+                "Limited to 3 tool calls and 5 results; "
+                "OpenRouter may fall back to Exa when the selected model lacks native search, "
+                "which may add charges."
+            ),
+        ),
+        Param(
             "mode",
             "select",
             "Output mode",
@@ -308,6 +322,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
         return []
     provider, base_url, api_key_env, model, api_key_override = _resolve(ctx)
     schema = ctx.param("schema", dict, {})
+    web_search = provider == "openrouter" and ctx.param("web_search", bool, False)
     template = ctx.param("prompt", str, "")
     mode = ctx.param("mode", str, "per_input")
 
@@ -345,7 +360,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
         ctx.metrics["llm_calls"] += 1
         try:
             value, tokens_in, tokens_out = await client.complete(
-                model, prompt, schema=schema or None
+                model, prompt, schema=schema or None, web_search=web_search
             )
         except SchemaValidationError as first:
             ctx.metrics["tokens_in"] += first.tokens_in
@@ -356,6 +371,7 @@ async def ask_ai(items: ItemList, ctx: Any) -> ItemList:
                 f"{prompt}\n\nYour previous response failed schema validation: "
                 f"{first.message}. Return corrected JSON.",
                 schema=schema or None,
+                web_search=web_search,
             )
         ctx.metrics["tokens_in"] += tokens_in
         ctx.metrics["tokens_out"] += tokens_out

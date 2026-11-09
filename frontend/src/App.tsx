@@ -1978,7 +1978,7 @@ function WorkflowEditor({
                         className={`results-tab ${resultTab === "diagnostics" ? "active" : ""}`}
                         onClick={() => setResultTab("diagnostics")}
                       >
-                        Diagnostics <span>{result.nodes.filter((item) => item.status === "error").length}</span>
+                        Diagnostics <span>{result.nodes.reduce((count, item) => count + (item.status === "error" ? 1 : 0) + (item.logs?.filter((entry) => entry.startsWith("Row ")).length ?? 0), 0)}</span>
                       </button>
                     </div>
                     {resultTab === "output" && (
@@ -3414,6 +3414,11 @@ function RunDiagnostics({
   onNode: (id: string) => void;
 }) {
   const failures = result.nodes.filter((item) => item.status === "error");
+  const rowIssues = result.nodes.flatMap((item) =>
+    (item.logs ?? [])
+      .filter((entry) => entry.startsWith("Row "))
+      .map((message) => ({ item, message })),
+  );
   const loggedNodes = result.nodes.filter((item) => item.logs?.length);
   return (
     <div className="results-scroll diagnostics-scroll">
@@ -3442,6 +3447,10 @@ function RunDiagnostics({
             </article>
           ))}
         </section>
+      ) : rowIssues.length ? (
+        <p className="diagnostic-log-empty">
+          {rowIssues.length} row {rowIssues.length === 1 ? "issue" : "issues"} recorded below.
+        </p>
       ) : (
         <div className="diagnostic-ok"><span className="status-indicator" /> No node failures in this run.</div>
       )}
