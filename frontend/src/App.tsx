@@ -56,6 +56,8 @@ import { Button } from "./components/ui/button";
 import { NodeLibrary } from "./components/editor/NodeLibrary";
 import { DataGrid, type GridCellSelection } from "./components/grid/DataGrid";
 import { CellDetails } from "./components/grid/CellDetails";
+import { ClaygentAlternativePage } from "./ClaygentAlternativePage";
+import { LegalPage } from "./LegalPage";
 import { LandingPage } from "./LandingPage";
 import { Tooltip, TooltipProvider } from "./components/ui/tooltip";
 import {
@@ -125,12 +127,24 @@ export function App() {
 
   const { pathname, hash } = url;
   const isLanding = pathname === "/";
+  const isClaygentAlternative = pathname === "/alternatives/claygent";
+  const isLegalPage = pathname === "/legal";
 
   useEffect(() => {
-    document.title = isLanding
-      ? "Clean your messy data — on your machine · n3rf"
-      : "n3rf — workflow editor";
-  }, [isLanding]);
+    document.title = isLegalPage
+      ? "About, privacy, terms, and data | n3rf"
+      : isClaygentAlternative
+        ? "Claygent alternative for row-by-row AI research | n3rf"
+        : isLanding
+          ? "AI data workflows for messy rows | n3rf"
+          : "n3rf — workflow editor";
+    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (description) {
+      description.content = isLegalPage
+        ? "Read about n3rf, its privacy practices, terms of use, and how data flows through a self-hosted instance."
+        : "Build AI data workflows for messy rows. Run locally with your own AI provider, and inspect results at every step.";
+    }
+  }, [isLanding, isClaygentAlternative, isLegalPage]);
 
   // Legacy hash URLs (#/home, #/editor, #/models, #/landing...) -> clean paths.
   useEffect(() => {
@@ -175,6 +189,12 @@ export function App() {
         onModels={() => openModels()}
       />
     );
+  }
+  if (isClaygentAlternative) {
+    return <ClaygentAlternativePage onOpenWorkspace={openWorkspace} />;
+  }
+  if (isLegalPage) {
+    return <LegalPage />;
   }
   if (isLanding) {
     return <LandingPage onOpenWorkspace={openWorkspace} />;

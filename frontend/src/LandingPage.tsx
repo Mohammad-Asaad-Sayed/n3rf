@@ -2,14 +2,27 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
+  Brain,
+  Building2,
   ChevronRight,
+  CircleDollarSign,
+  Cpu,
+  FileCheck2,
+  GraduationCap,
+  HardDrive,
+  KeyRound,
+  MessageSquare,
+  Rocket,
+  Search,
+  ShoppingBag,
+  Sparkles,
+  UserRound,
   Play,
   Upload,
   Workflow,
 } from "lucide-react";
 import {
   useEffect,
-  useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
@@ -21,68 +34,59 @@ const enrichedCompanies = [
     company: "Apple",
     domain: "apple.com",
     industry: "technology",
-    signal: "Services growth narrative on company site",
+    signal: "Consumer devices, software, and services",
   },
   {
     company: "Microsoft",
     domain: "microsoft.com",
     industry: "technology",
-    signal: "Cloud + AI positioning on homepage",
+    signal: "Cloud and AI products for businesses",
   },
   {
     company: "Shopify",
     domain: "shopify.com",
     industry: "ecommerce",
-    signal: "Headcount band 5,001–10,000 in source",
+    signal: "Commerce tools for merchants",
   },
   {
     company: "Notion",
     domain: "notion.so",
     industry: "software",
-    signal: "Product-led positioning on site",
+    signal: "Connected workspace for docs and knowledge",
   },
   {
     company: "Stripe",
     domain: "stripe.com",
     industry: "fintech",
-    signal: "Tax expansion note on site",
+    signal: "Payments infrastructure for internet businesses",
   },
 ];
 
 const useCases = [
-  { tag: "COMPANIES", title: "Companies", desc: "CEO, funding raised, headcount, tech stack, recent news", cols: "CEO · Funding · Headcount · News" },
-  { tag: "PEOPLE", title: "People", desc: "Current employer, job title, published work", cols: "Title · Employer · Published work" },
-  { tag: "STARTUPS", title: "Startups", desc: "Latest round, investors, product summary, competitors", cols: "Round · Investors · Summary" },
-  { tag: "UNIVERSITIES", title: "Universities", desc: "Ranking, acceptance rate, tuition, notable alumni", cols: "Rank · Tuition · Acceptance" },
-  { tag: "PRODUCTS", title: "Products", desc: "Pricing, reviews, feature set, competitors, G2 rating", cols: "Price · Reviews · Features" },
-  { tag: "REVIEWS", title: "Reviews", desc: "Theme, sentiment, representative quote + count", cols: "Theme · Sentiment · Quote" },
+  { tag: "COMPANIES", title: "Companies", desc: "Research leadership, products, hiring, or recent news.", cols: "Leadership · Products · News", icon: Building2 },
+  { tag: "PEOPLE", title: "People", desc: "Organize public information around the questions you need answered.", cols: "Role · Work · Public profiles", icon: UserRound },
+  { tag: "STARTUPS", title: "Startups", desc: "Summarize what a company does, who backs it, and how it is changing.", cols: "Product · Funding · Signals", icon: Rocket },
+  { tag: "UNIVERSITIES", title: "Universities", desc: "Compare institutions against the criteria that matter to your work.", cols: "Programs · Costs · Research", icon: GraduationCap },
+  { tag: "PRODUCTS", title: "Products", desc: "Compare features, positioning, pricing, and public reviews.", cols: "Price · Features · Reviews", icon: ShoppingBag },
+  { tag: "REVIEWS", title: "Reviews", desc: "Turn unstructured feedback into themes and useful summaries.", cols: "Theme · Sentiment · Summary", icon: MessageSquare },
+  { tag: "ANYTHING ELSE", title: "Anything else", desc: "Describe the data and questions that matter to your workflow.", cols: "Your list · Your questions · Your output", icon: Sparkles },
 ];
 
 const steps = [
-  { n: "01", title: "Load your spreadsheet", desc: "Drop a CSV, TSV or Excel (.xlsx) file at /app. Headers become snake_case columns (Company Name → company_name) instantly, parsed in Python with no new JavaScript libraries." },
-  { n: "02", title: "Say what you need", desc: "Smart columns surface first (company, domain, name). Ask AI takes a plain-English prompt; output columns are schema-checked. Drag column chips into prompts — no expression syntax to memorize." },
-  { n: "03", title: "Pick a model, check the cost", desc: "Published list prices via GET /pricing (May 2026). Estimate a batch before you run, then Test 5 rows for exact usage. Keys live in the backend environment, never in workflow JSON." },
-  { n: "04", title: "Test 5 rows, then run", desc: "Run slices every input chain to 5 rows. Check the sample + rows-in → rows-out + tokens, then run the full batch with concurrency and on_error." },
+  { n: "01", title: "Bring your spreadsheet", desc: "Open a CSV, TSV, or Excel file in your workspace. Your column headers become the starting point for the workflow." },
+  { n: "02", title: "Describe the result you need", desc: "Add steps to shape, filter, search, or ask AI about your rows. Use your own columns in plain-language prompts." },
+  { n: "03", title: "Choose a model and preview", desc: "Connect a provider with your own key. Test a small sample and review token use before processing the full dataset." },
+  { n: "04", title: "Run the batch and inspect", desc: "Follow each step's row counts, status, and sample output. See where data changed or a step needs attention." },
 ];
 
 const compareRows = [
-  ["Platform fee", "$0, self-hosted", "$149–$800/mo (public page)", "Subscription", "Your time"],
-  ["AI research per row", "Paid to provider directly", "Uses Clay credits", "Per-action pricing", "Manual paste"],
-  ["500 rows researched", "Provider rate, tokens visible", "Eats credit quota", "Per-action costs", "An afternoon"],
-  ["Model choice", "Any OpenAI-compatible + local Ollama", "Claygent's model", "Provider-locked", "One chat model"],
-  ["Web search / reader", "Separate SEARCH nodes", "Via Claygent", "Extra apps", "Manual browsing"],
-  ["Rows in → out per step", "Yes — the core UI", "No", "No", "No"],
-  ["Where rows live", "Your machine (local SQLite)", "Their servers", "Their servers", "Your sheet + chat"],
-  ["Rate-limit handling", "Concurrency cap + on_error", "Managed for you", "Managed for you", "You, manually"],
-  ["Account required", "No", "Yes, plus a card", "Yes", "Account"],
-];
-
-const methodology = [
-  ["Row-level traceability", "Which input rows produced this output?", "Every enriched row links back to dated source rows"],
-  ["Coverage", "What was kept, dropped, or set aside?", "341 / 498 kept, 157 set aside — visible per node"],
-  ["Schema validity", "Did the model return clean JSON?", "489 valid, 9 repaired, 0 silent drops (sample)"],
-  ["Cost honesty", "What did this run actually call?", "Call count and tokens shown per run"],
-  ["Reproducibility", "Does it run the same next quarter?", "Same CSV, same prompt, same schema + nodes"],
+  ["Best fit", "AI workflows over data batches", "Data enrichment and AI research", "Connecting events and services", "Quick questions and exploration", "One-off or custom data workflows"],
+  ["Work starts with", "Rows in a workflow", "Tables and enrichment steps", "A trigger, task, or connected app", "A prompt and pasted data", "A script and its inputs"],
+  ["AI and web research", "Your prompts and provider steps", "Claygent and data-provider features", "AI steps depend on integrations", "Manual prompts and browsing", "Whatever you build"],
+  ["See what changed", "Row counts and samples at each node", "Enrichment results in the platform", "Run history and task details", "Match answers back by hand", "Logs and inspection you build"],
+  ["Provider and model choice", "Configure a supported model/provider", "Options depend on current Clay features", "Depends on the connected apps", "Choose a chat model", "Choose and configure your stack"],
+  ["Pricing model", "$0 n3rf fee; provider charges may apply", "Plans and credits; check current pricing", "Plans and task limits vary", "Plan or API charges may apply", "Development and provider costs"],
+  ["Where it runs", "Locally, with configured provider calls", "Clay's hosted platform", "Hosted or self-hosted, depending on product", "Depends on the chat provider", "Where you deploy it"],
 ];
 
 const pipeline = [
@@ -93,53 +97,46 @@ const pipeline = [
   ["RANK", "498", "341"],
 ];
 
-const retained = [
-  { label: "IMPORT", value: 500, cls: "accent" },
-  { label: "FILTER", value: 498, cls: "accent" },
-  { label: "SEARCH", value: 498, cls: "warn" },
-  { label: "RANK", value: 341, cls: "accent" },
-];
-
 const faqs = [
   {
     q: "What is n3rf?",
-    a: "A local-first, AI-first workflow builder. Messy rows in, structured rows out, on your own model and key. You wire a graph of nodes, press run, and watch rows in → rows out at every node until the data is the shape you wanted.",
+    a: "n3rf is a local-first workflow builder for working with batches of data. Bring a spreadsheet, connect steps for transforming or researching its rows, and inspect what each step produced. Use your own model provider and API key.",
   },
   {
     q: "Is n3rf free?",
-    a: "The platform fee is $0 — you run it on your machine. You pay your model provider directly at their published rates. Local Ollama is $0. SEARCH nodes use replenishing free tiers (for example Tavily, Exa, Jina Reader) with no card required to start.",
+    a: "There is no n3rf platform fee. You run it on your machine and pay any model or search provider you choose, according to that provider's current pricing. Local models may avoid per-token API charges, but still use your own hardware.",
   },
   {
-    q: "How is n3rf different from Clay?",
-    a: "Clay is two products: a data aggregator querying 150+ providers in a waterfall, plus an AI research agent. n3rf does the research half as explicit nodes — one LLM node per question plus SEARCH nodes that read the live web per row — with per-step counts, schema repair, and capped concurrency. For licensed contact records, pair it with HTTP Request to your contact provider.",
+    q: "How is n3rf different from a chat and spreadsheet?",
+    a: "Instead of moving batches between a chat window and a spreadsheet by hand, n3rf runs a workflow over rows. You can see how many rows enter and leave each step, inspect samples, and rerun after changing the workflow.",
   },
   {
     q: "Is my data safe with n3rf?",
-    a: "This is an architectural claim, not a policy promise. Runs execute in your local FastAPI app with workflows and runs in your local SQLite on your disk. Keys live in environment variables, never in workflow JSON. If the backend is unreachable the editor simulates and says so three ways (amber banner, amber LED, “· simulated”). Nothing is uploaded off your machine except the provider calls you configure.",
+    a: "n3rf is designed to run locally: workflows and run history are stored on your machine, and provider keys are configured in your environment rather than saved in workflow JSON. Data sent to a model or search service is subject to that provider's terms and privacy practices.",
   },
   {
     q: "What models does n3rf support?",
-    a: "Any provider in one Ask AI node: OpenAI, Groq, Gemini, OpenRouter, Mistral, Hugging Face, Ollama (local) and Cloudflare. Pick a provider in the inspector — model and key name fill in automatically. Custom keeps any OpenAI-compatible endpoint.",
+    a: "Use a supported provider such as OpenAI, Groq, Gemini, OpenRouter, Mistral, Hugging Face, Ollama, or Cloudflare. You can also configure a compatible custom endpoint. Provider availability and model requirements vary.",
   },
   {
-    q: "What if I hit rate limits?",
-    a: "Each AI and SEARCH node has tunable concurrency and on_error (error_item / skip / fail) plus max_output_rows caps. The LLM client retries and validates schema, repairing once on failure. The run meta shows llm_calls and token counts so you see the burn.",
+    q: "Can I test before running the full dataset?",
+    a: "Yes. Test a small set of rows first, inspect the output, and review token usage before running the full batch. AI and search steps also let you control concurrency and how errors are handled.",
   },
   {
     q: "What file formats does n3rf support?",
-    a: "CSV, TSV, spreadsheet paste, Manual JSON, Text Lines, File Upload, Field Builder and the sample dataset at /app. Excel (.xlsx) is parsed in Python (standard library only, up to 10 MB) via POST /parse-file and opened as the same CSV canvas — legacy .xls should be resaved as .xlsx. The workspace's Drop your CSV page accepts .csv/.tsv/.xlsx up to 10 MB.",
+    a: "The workspace accepts CSV, TSV, and Excel (.xlsx) files up to 10 MB. You can also start with pasted spreadsheet data, JSON, text lines, or a built-in example dataset.",
   },
   {
-    q: "How much will a run cost before I commit?",
-    a: "GET /pricing serves published list prices per 1M tokens (May 2026, $0 platform markup) and POST /pricing/estimate answers a batch. In the editor, Test 5 rows runs only the first 5 rows of every input chain and shows tokens/call counts — then run the full batch with that exact usage in hand.",
+    q: "How much will a run cost?",
+    a: "n3rf does not add a platform fee or markup. Model and search charges depend on your providers, models, and prompts. Test a small sample to see token usage, then check your provider's current rates for an estimate.",
   },
   {
     q: "Do I need to create an account?",
-    a: "No. n3rf is a single-operator, self-hosted workspace. No sign-up, no card for n3rf itself. You only add provider keys in your shell environment if you want live model calls — the prepared sample needs none.",
+    a: "No n3rf account or card is required. To make live model or search requests, configure the credentials required by the providers you choose.",
   },
   {
     q: "What kind of data can I enrich?",
-    a: "Any list where the answer exists in public and the question is specific to you: companies, people, startups, universities, products, reviews. Smart columns lead the pickers, so you click a column and the prompt reads {{company}} — no syntax to memorize.",
+    a: "Any tabular data that fits your workflow. For example, research companies, compare products, categorize reviews, or summarize public information. Results depend on your prompts, source data, and providers, so verify important outputs.",
   },
 ];
 
@@ -149,8 +146,6 @@ export function LandingPage({
   onOpenWorkspace: () => void;
 }) {
   const [scrolled, setScrolled] = useState(false);
-  const [signalAligned, setSignalAligned] = useState(false);
-  const [signalFallback, setSignalFallback] = useState<"failed" | "disabled" | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -206,16 +201,17 @@ export function LandingPage({
 
   function downloadSample() {
     const content = [
-      "n3rf · Sample run (prepared example data)",
+      "n3rf · Illustrative workflow example",
       "",
+      "Prepared example data; these figures are illustrative, not customer results.",
       "500 rows in → 498 after filters → 341 kept",
       "",
       ...enrichedCompanies.map(
         (c) => `${c.company},${c.domain},${c.industry},${c.signal}`,
       ),
       "",
-      "489 valid, 9 repaired, 0 silent drops. Your key, your data. Runs on your machine.",
-      "Illustrative example. Real output varies, so always verify.",
+      "No live model or search calls are made for this prepared example.",
+      "AI-generated information can be inaccurate. Verify results before relying on them.",
     ].join("\n");
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -233,65 +229,62 @@ export function LandingPage({
           <Workflow /> <span>FOR: OPS ANALYSTS WITH MESSY SHEETS</span>
         </button>
         <nav aria-label="Product page">
-          <button type="button" onClick={() => goTo("landing-what")}>What it does</button>
+          <button type="button" onClick={() => goTo("landing-what")}>Examples</button>
           <button type="button" onClick={() => goTo("landing-how")}>How it works</button>
-          <button type="button" onClick={() => goTo("landing-pricing")}>Pricing</button>
+          <button type="button" onClick={() => goTo("landing-pricing")}>Costing</button>
           <button type="button" onClick={() => goTo("landing-why")}>Why n3rf</button>
           <button type="button" onClick={() => goTo("landing-faq")}>FAQ</button>
         </nav>
-        <Button variant="primary" onClick={onOpenWorkspace}><Upload /> Drop CSV &amp; run <ArrowUpRight /></Button>
+        <Button variant="primary" onClick={onOpenWorkspace}><Upload /> Open workspace <ArrowUpRight /></Button>
       </header>
 
       <section className="landing-hero" id="landing-hero">
-        <SignalField aligned={signalAligned} fallback={signalFallback} onFallback={setSignalFallback} />
         <div className="landing-hero-inner">
           <div className="landing-hero-frame">
             <span className="hero-bracket hero-bracket-tl" />
             <span className="hero-bracket hero-bracket-tr" />
             <span className="hero-bracket hero-bracket-bl" />
             <span className="hero-bracket hero-bracket-br" />
-            <div className="landing-hero-copy">
-              <p className="landing-qualifier">$0 platform fee · No sign-up · No card · Python-only backend</p>
-              <h1>Enrich a spreadsheet with your own key. Every row counted.</h1>
-              <p className="landing-subhead">
-                Point it at a CSV or Excel (.xlsx) file, pick the columns you mean,
-                check the cost, and every row is researched with AI and live web
-                search. You pay the model provider directly and n3rf takes nothing —
-                and you see rows-in → rows-out at every node.
-              </p>
-              <div
-                className="landing-hero-actions"
-                onPointerEnter={() => setSignalAligned(true)}
-                onPointerLeave={() => setSignalAligned(false)}
-              >
-                <Button
-                  variant="primary"
+            <div className="landing-hero-main">
+              <div className="landing-hero-copy">
+                <p className="landing-qualifier">AI DATA WORKFLOWS · YOUR MODEL · NO PLATFORM FEE</p>
+                <h1>AI workflows for messy rows—with every step in view.</h1>
+                <p className="landing-subhead">
+                  Turn a spreadsheet into a clean, useful dataset without shuttling
+                  rows between a chat window and a script. Build a workflow around
+                  your data, use your own AI provider, and see what each step did.
+                </p>
+                <div className="landing-hero-actions">
+                  <Button
+                    variant="primary"
+                    onClick={onOpenWorkspace}
+                    onPointerMove={tiltElement}
+                    onPointerLeave={resetTilt}
+                  >
+                    <Upload /> Open the workspace
+                  </Button>
+                  <Button variant="ghost" onClick={() => goTo("landing-how")}>How it works <ArrowDown /></Button>
+                  <p className="landing-sample-note">No account needed · CSV, TSV, or .xlsx up to 10 MB. <button type="button" onClick={() => goTo("landing-artifact")}>Preview an example ↓</button></p>
+                </div>
+                <button
+                  className="landing-upload"
+                  type="button"
                   onClick={onOpenWorkspace}
-                  onPointerMove={tiltElement}
-                  onPointerLeave={resetTilt}
+                  aria-label="Open the n3rf workspace"
                 >
-                  <Upload /> Start enriching for free
-                </Button>
-                <Button variant="ghost" onClick={() => goTo("landing-how")}>See how it works <ArrowDown /></Button>
-                <p className="landing-sample-note">No signup · no key for the sample · .csv / .tsv / .xlsx up to 10 MB. <button type="button" onClick={() => goTo("landing-artifact")}>See the sample run instead ↓</button></p>
+                  <Upload />
+                  <span>Start with a spreadsheet or sample data</span>
+                  <ChevronRight />
+                </button>
               </div>
-              <button
-                className="landing-upload"
-                type="button"
-                onClick={onOpenWorkspace}
-                aria-label="Open the workspace to drop your CSV"
-              >
-                <Upload />
-                <span>Drop your CSV — opens the workspace</span>
-                <ChevronRight />
-              </button>
+              <HeroWorkflowPreview />
             </div>
-            <div className="landing-proof" aria-label="Sample run summary">
+            <div className="landing-proof" aria-label="Illustrative prepared example: 500 rows in, 498 after filters, 341 kept">
               <span className="landing-proof-dot" />
               <span><b>500</b> ROWS IN</span><ArrowRight />
               <span><b>498</b> AFTER FILTERS</span><ArrowRight />
               <span><b>341</b> KEPT</span>
-              <i>· EVERY ROW COUNTED · WE CHARGE $0, ALWAYS</i>
+              <i>· ILLUSTRATIVE EXAMPLE · NO PLATFORM FEE</i>
             </div>
             <div className="node-marquee" aria-hidden="true">
               <div className="node-marquee-track">
@@ -306,8 +299,8 @@ export function LandingPage({
                   "Exa Search",
                   "Sort",
                   "Ask AI",
-                ].map((name) => (
-                  <span key={name}>{name} <b>→</b></span>
+                ].map((name, index) => (
+                  <span key={`${name}-${index}`}>{name} <b>→</b></span>
                 ))}
                 {[
                   "Manual JSON",
@@ -320,8 +313,8 @@ export function LandingPage({
                   "Exa Search",
                   "Sort",
                   "Ask AI",
-                ].map((name) => (
-                  <span key={`dup-${name}`}>{name} <b>→</b></span>
+                ].map((name, index) => (
+                  <span key={`dup-${name}-${index}`}>{name} <b>→</b></span>
                 ))}
               </div>
             </div>
@@ -332,27 +325,30 @@ export function LandingPage({
       <div className="landing-content">
         <section className="landing-section" id="landing-pain" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">01 · You recognise this before you scroll</span>
-            <h2>At 500 rows, the old ways break.</h2>
-            <p>Your spreadsheet takes an afternoon. The errors hide where nobody can see them. And credit-based research burns fast.</p>
+            <span className="landing-kicker">01 · The problem</span>
+            <h2>When rows disappear into the process, results are hard to trust.</h2>
+            <p>Copying, pasting, and rerunning by hand makes it difficult to see what changed—or which step needs fixing.</p>
           </div>
           <section className="landing-models" aria-label="The problem">
-            <article><span className="landing-kicker">SPREADSHEET + CHAT WINDOW</span><p>You paste chunks into a chat, paste back prose, and lose track of which row became which.</p><small>NO TRACEABILITY</small></article>
-            <article><span className="landing-kicker">ZAPIER / N8N</span><p>Built for triggers and events. Poor at a batch of rows, at per-step counts, at showing where rows disappeared.</p><small>WRONG UNIT OF WORK</small></article>
-            <article><span className="landing-kicker">A PYTHON SCRIPT</span><p>Does the job, then becomes the problem. Not inspectable. No per-step visibility. No cost control.</p><small>NOT INSPECTABLE</small></article>
+            <article><span className="landing-kicker">SPREADSHEET + CHAT</span><p>Move chunks back and forth, then try to match the answers to the original rows.</p><small>MANUAL COPY AND PASTE</small></article>
+            <article><span className="landing-kicker">GENERAL AUTOMATION</span><p>Connect triggers and services, then piece together a flow for a one-off batch job.</p><small>ROWS ARE AN AFTERTHOUGHT</small></article>
+            <article><span className="landing-kicker">A CUSTOM SCRIPT</span><p>Get the result you need, but rely on code and logs to understand what happened.</p><small>HARD TO HAND OFF</small></article>
           </section>
         </section>
 
         <section className="landing-section" id="landing-what" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">02 · What it does</span>
-            <h2>Research for any dataset.</h2>
-            <p>Every row gets its own prompt, its own web search and its own answer, so it works for any kind of list — not just companies.</p>
+            <span className="landing-kicker">02 · What you can do</span>
+            <h2>Start with your rows. Ask the questions that matter to you.</h2>
+            <p>Build a repeatable workflow to clean, organize, and research all kinds of tabular data—not just company lists.</p>
           </div>
           <div className="datasets-grid" aria-label="Datasets n3rf can enrich">
             {useCases.map((u) => (
               <article key={u.tag} className="dataset-card">
-                <span className="landing-kicker">{u.tag}</span>
+                <div className="dataset-card-top">
+                  <u.icon aria-hidden="true" />
+                  <span className="landing-kicker">{u.tag}</span>
+                </div>
                 <h3>{u.title}</h3>
                 <p>{u.desc}</p>
                 <small>{u.cols}</small>
@@ -360,40 +356,40 @@ export function LandingPage({
             ))}
           </div>
           <div className="built-note">
-            <h3>Built for pipelines, not directory lookups</h3>
+            <h3>For questions a fixed database field cannot answer</h3>
             <p>
-              Clay queries 150+ data providers for structured records. n3rf does the other half of
-              the job: it reads the live web via SEARCH nodes and answers a question you write
-              yourself, per row — with rows-in → rows-out at every step. That makes it the right
-              tool whenever the answer exists in public and the question is specific to you.
+              A directory can only return the fields it has. With n3rf, define the
+              question, choose the steps and sources, and run that workflow across
+              your rows. Results stay inspectable from the first transformation to
+              the final output.
             </p>
             <ul>
-              <li>Company overviews, funding, leadership, headcount and recent news</li>
-              <li>Custom questions no data-provider schema has a field for</li>
-              <li>Any list at all: products, universities, competitors, countries, reviews</li>
-              <li>Live answers, researched at the moment you run them</li>
+              <li>Shape, filter, sort, and combine rows before or after AI steps</li>
+              <li>Ask custom questions in plain language and define the output you need</li>
+              <li>Use web search and page-reading steps when your workflow needs them</li>
+              <li>Inspect row counts, errors, and sample outputs as the workflow runs</li>
             </ul>
-            <p><ArrowRight /> Pair it with HTTP Request when you also need verified emails and phone numbers from a licensed provider.</p>
+            <p><ArrowRight /> Bring a data provider or service into the workflow with the generic HTTP Request step.</p>
           </div>
         </section>
 
         <section className="landing-section landing-artifact" id="landing-artifact" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">03 · Sample · prepared example data</span>
-            <h2>prospect_list.csv, enriched.</h2>
-            <p>One prompt per row, live web search per row, schema-checked answers. The counts below are the product.</p>
+            <span className="landing-kicker">03 · Example workflow · prepared data</span>
+            <h2>See a workflow from input to output.</h2>
+            <p>This prepared example shows how rows move through a workflow. It is an illustration of the product—not a customer result or a promise of research accuracy.</p>
           </div>
-          <div className="artifact-grid">
+          <div className="artifact-example">
             <div className="artifact-table-panel">
-              <div className="artifact-panel-heading"><span>PROSPECT_LIST.CSV, ENRICHED</span><small>ILLUSTRATIVE · 5 OF 500</small></div>
+              <div className="artifact-panel-heading"><span>ENRICHED COMPANY LIST</span><small>PREPARED EXAMPLE · 5 ROWS</small></div>
               <div className="artifact-table-scroll">
                 <table className="artifact-table">
-                  <thead><tr><th>COMPANY</th><th>DOMAIN</th><th>INDUSTRY</th><th>ENRICHED SIGNAL</th></tr></thead>
+                  <thead><tr><th>COMPANY</th><th>DOMAIN</th><th>INDUSTRY</th><th>RESEARCH NOTE</th></tr></thead>
                   <tbody>
                     {enrichedCompanies.map((c) => (
                       <tr key={c.company}>
                         <th scope="row">{c.company}</th>
-                        <td className="artifact-quote">{c.domain}</td>
+                        <td>{c.domain}</td>
                         <td>{c.industry}</td>
                         <td className="artifact-quote">{c.signal}</td>
                       </tr>
@@ -402,33 +398,22 @@ export function LandingPage({
                 </table>
               </div>
               <div className="enriched-note">
-                <span>AI-generated columns</span>
-                <small>Illustrative example. Real output varies, so always verify.</small>
+                <span>Illustrative AI-generated output</span>
+                <small>Prepared data, not customer results. Verify information before relying on it.</small>
               </div>
-              <div className="theme-chart" aria-label="Rows kept per stage: Import 500, Filter 498, Search 498, Rank 341">
-                <p>ROWS KEPT / STAGE</p>
-                {retained.map((r) => (
-                  <div className="theme-bar-row" key={r.label}>
-                    <span>{r.label}</span><div><i className={r.cls} style={{ width: `${(r.value / 500) * 100}%` }} /></div><b>{r.value}</b>
+            </div>
+            <div className="run-trace-panel">
+              <div className="artifact-panel-heading"><span>WHAT HAPPENED TO THE ROWS?</span><small>ILLUSTRATIVE RUN TRACE</small></div>
+              <div className="run-trace-steps">
+                {pipeline.map(([name, before, after], index) => (
+                  <div className={`run-trace-step trace-${name.toLowerCase()}`} key={name}>
+                    <span className="run-trace-step-name"><i>{String(index + 1).padStart(2, "0")}</i>{name}</span>
+                    <strong>{before}<ArrowRight />{after}</strong>
+                    <small>rows in <span>rows out</span></small>
                   </div>
                 ))}
               </div>
-            </div>
-            <div
-              className="run-trace-glass"
-              data-reveal
-              onPointerMove={tiltElement}
-              onPointerLeave={resetTilt}
-            >
-              <div className="run-trace-heading"><span>RUN TRACE</span><span className="run-trace-state">SAMPLE · COMPLETE</span></div>
-              <p className="run-trace-meta">NODE <span>ROWS IN</span><span>ROWS OUT</span></p>
-              {pipeline.map(([name, before, after], index) => (
-                <div className={`run-trace-row trace-${name.toLowerCase()}`} key={name}>
-                  <span><i>{String(index + 1).padStart(2, "0")}</i>{name}</span><b>{before}</b><b>{after}</b>
-                </div>
-              ))}
-              <div className="run-trace-foot">EXTRACT <span>498 CALLS · 489 VALID · <b className="repair-count">9 REPAIRED</b></span></div>
-              <div className="run-trace-micro">Prepared example · no live calls · tokens shown per real run</div>
+              <p className="run-trace-micro">Prepared example · no live calls · results vary with your data, workflow, and providers.</p>
             </div>
           </div>
         </section>
@@ -436,8 +421,8 @@ export function LandingPage({
         <section className="landing-section landing-how" id="landing-how" data-reveal>
           <div className="landing-section-heading">
             <span className="landing-kicker">04 · How it works</span>
-            <h2>Four steps, about two minutes.</h2>
-            <p>Drop in a CSV, TSV or Excel file, say what columns you need, check the cost, test three rows, then run the batch. Every node shows its work.</p>
+            <h2>From spreadsheet to repeatable workflow.</h2>
+            <p>Bring your data, define the steps, test a sample, then run the batch. Results show what happened at every step.</p>
           </div>
           <div className="steps-grid" aria-label="Four steps">
             {steps.map((s, index) => (
@@ -449,64 +434,70 @@ export function LandingPage({
               </article>
             ))}
           </div>
-          <p className="pipeline-note"><ArrowDown /> Every node shows rows in, rows out, duration, and a 5-row sample. Errors appear where they happen.</p>
+          <p className="pipeline-note"><ArrowDown /> Inspect row counts, status, duration, sample outputs, and errors in the results panel.</p>
         </section>
 
         <section className="landing-section" id="landing-pricing" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">05 · Pricing</span>
-            <h2>We charge nothing. Here is what the model costs.</h2>
-            <p>No markup, no credits, no seats. You are billed by your provider at their published rates, and the run meta shows the number before you commit.</p>
+            <span className="landing-kicker">05 · Costing</span>
+            <h2>No n3rf fee. Your provider, your call.</h2>
+            <p>n3rf adds no subscription or usage markup. Model and search services may charge separately; check their current rates and test a sample before a full run.</p>
           </div>
           <div className="pricing-grid" aria-label="Cost breakdown">
-            <article><span className="landing-kicker">N3RF FEE</span><h3>$0.00</h3><p>Always. Self-hosted on your machine.</p><small>NO MARKUP · NO SEATS</small></article>
-            <article><span className="landing-kicker">MODEL</span><h3>Billed direct</h3><p>Any OpenAI-compatible endpoint at published rates. Run shows llm_calls + tokens.</p><small>YOUR KEY · PROVIDER PRICING</small></article>
-            <article><span className="landing-kicker">SEARCH / READER</span><h3>Free tiers</h3><p>Tavily 1,000 credits/month · Jina Reader 20 RPM no key · Exa $10/month — replenishing, no card to start.</p><small>SEPARATE NODES · NO WATERFALL</small></article>
-            <article><span className="landing-kicker">LOCAL</span><h3>Ollama $0</h3><p>Run llama3.1:8b locally. Unlimited, data never leaves your machine.</p><small>TOKEN COST $0</small></article>
+            <article><span className="cost-card-label"><CircleDollarSign aria-hidden="true" /><span className="landing-kicker">N3RF</span></span><h3>$0 platform fee</h3><p>Run the workspace on your own machine. No n3rf subscription or usage markup.</p><small>SELF-HOSTED · NO SEATS</small></article>
+            <article><span className="cost-card-label"><Brain aria-hidden="true" /><span className="landing-kicker">AI MODEL</span></span><h3>Your provider</h3><p>Connect a model with your own API key. Provider charges depend on your model and usage.</p><small>BRING YOUR OWN KEY</small></article>
+            <article><span className="cost-card-label"><Search aria-hidden="true" /><span className="landing-kicker">SEARCH SERVICES</span></span><h3>Your choice</h3><p>Use supported search and page-reading providers. Their pricing, limits, and key requirements vary.</p><small>CHECK PROVIDER TERMS</small></article>
+            <article><span className="cost-card-label"><Cpu aria-hidden="true" /><span className="landing-kicker">LOCAL MODEL</span></span><h3>Run locally</h3><p>Connect a local model such as Ollama. You supply and maintain the hardware.</p><small>NO MODEL API BILL</small></article>
           </div>
-          <p className="pipeline-note"><ArrowRight /> Test 5 rows first — the per-node sample, token counts and list prices give you the batch cost before you run 500.</p>
+          <p className="pipeline-note"><ArrowRight /> A small test can help you understand token use; it cannot guarantee the cost or output of a full run.</p>
         </section>
 
         <section className="landing-section" id="landing-why" data-reveal>
           <div className="landing-section-heading">
             <span className="landing-kicker">06 · Why n3rf</span>
-            <h2>The same AI research, without the subscription.</h2>
-            <p>Swap in a rival’s name. This table stops working — if another tool could say the same, it is not a differentiator.</p>
+            <h2>AI research, built around your rows.</h2>
+            <p>Choose n3rf for a local, inspectable AI workflow over a dataset; choose the alternative that best fits your data sources, integrations, and way of working.</p>
           </div>
           <div className="method-table-wrap">
             <table className="method-table">
-              <thead><tr><th>CAPABILITY</th><th>N3RF</th><th>CLAY (CLAYGENT)</th><th>ZAPIER / N8N</th><th>CHAT + SHEET</th></tr></thead>
-              <tbody>{compareRows.map(([cap, n3rf, clay, alt1, alt2]) => (
-                <tr key={cap}><th scope="row">{cap}</th><td>{n3rf}</td><td>{clay}</td><td>{alt1}</td><td>{alt2}</td></tr>
+              <thead><tr><th>CAPABILITY</th><th>N3RF</th><th>CLAY / CLAYGENT</th><th>ZAPIER / N8N</th><th>CHAT + SHEET</th><th>CUSTOM SCRIPT</th></tr></thead>
+              <tbody>{compareRows.map(([capability, n3rf, clay, automation, chat, script]) => (
+                <tr key={capability}><th scope="row">{capability}</th><td>{n3rf}</td><td>{clay}</td><td>{automation}</td><td>{chat}</td><td>{script}</td></tr>
               ))}</tbody>
             </table>
           </div>
-          <p className="table-foot">Clay pricing from their public pricing page and subject to change. Comparison covers AI-research features only, not Clay’s data-provider integrations. The wedge is AI-native data pipelines — not 400 integrations. Thirty-five nodes make the pipeline complete.</p>
+          <p className="table-foot">High-level comparison of typical product focus, not a feature-by-feature benchmark. Plans, pricing, integrations, and capabilities change; check each provider's current details. n3rf's distinction is a local-first, row-based workflow with visible results at each step.</p>
+          <a className="claygent-page-link" href="/alternatives/claygent">
+            See n3rf as a Claygent alternative <ArrowUpRight aria-hidden="true" />
+          </a>
         </section>
 
         <section className="landing-section" id="landing-proof" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">07 · Privacy &amp; trust</span>
-            <h2>We cannot see your rows. Runs on your machine.</h2>
-            <p>This is an architectural claim, not a policy promise. CSVs are parsed on your machine, keys live in the environment — never in workflow JSON. A simulated run is labelled three ways, never passed off as real.</p>
+            <span className="landing-kicker">07 · Privacy and data</span>
+            <h2>Know where your data goes.</h2>
+            <p>Your workflow runs locally. Only steps that use an external provider send requests to that provider.</p>
           </div>
-          <section className="landing-models" aria-label="Where data lives">
-            <article><span className="landing-kicker">YOUR MACHINE</span><p>FastAPI + local SQLite on your disk. Workflows, runs and samples stay local.</p><small>NO REMOTE DATABASE</small></article>
-            <article><span className="landing-kicker">MODEL PROVIDER</span><p>Your key, billed direct. Only the prompts you configure leave your machine.</p><small>YOUR KEY · PROVIDER PRICING</small></article>
-            <article><span className="landing-kicker">YOUR EXPORT</span><p>Your rows, your download. No account, no card, no upload off-machine except configured calls.</p><small>NO ACCOUNT · NO CARD</small></article>
-          </section>
-          <section className="landing-models trust-chips" aria-label="Guarantees">
-            <article><span className="landing-kicker">WILL IT FAKE RESULTS?</span><p>No. If the API is unreachable the editor simulates — amber banner, amber LED, “· simulated” in the meta.</p><small>NO SILENT FAKES</small></article>
-            <article><span className="landing-kicker">CAN I CHECK IT?</span><p>35 nodes, offline test suite under 10s, schema repair counts visible — 489 valid, 9 repaired in the sample.</p><small>REPRODUCIBLE</small></article>
-            <article><span className="landing-kicker">KEYS NEVER IN JSON</span><p>Secrets live in environment variables. Workflow JSON stores only the variable name.</p><small>SECRET-SAFE BY DESIGN</small></article>
-          </section>
-          <div className="method-table-wrap" style={{ marginTop: "var(--space-4)" }}>
-            <table className="method-table">
-              <thead><tr><th>DIMENSION</th><th>WHAT IT MEASURES</th><th>ANCHOR EXAMPLE</th></tr></thead>
-              <tbody>{methodology.map(([dimension, measure, example]) => (
-                <tr key={dimension}><th scope="row">{dimension}</th><td>{measure}</td><td>{example}</td></tr>
-              ))}</tbody>
-            </table>
+          <div className="privacy-flow" aria-label="How data moves through n3rf">
+            <article>
+              <span className="privacy-step-label"><HardDrive aria-hidden="true" /><span className="landing-kicker">01 · YOUR MACHINE</span></span>
+              <h3>Workflow and run history</h3>
+              <p>Stored in your local workspace.</p>
+            </article>
+            <article>
+              <span className="privacy-step-label"><KeyRound aria-hidden="true" /><span className="landing-kicker">02 · YOUR PROVIDER</span></span>
+              <h3>Only when a step needs it</h3>
+              <p>Configured AI and search requests go to the provider you choose.</p>
+            </article>
+            <article>
+              <span className="privacy-step-label"><FileCheck2 aria-hidden="true" /><span className="landing-kicker">03 · YOUR RESULTS</span></span>
+              <h3>Back in your workspace</h3>
+              <p>Inspect the output and export the rows you need.</p>
+            </article>
+          </div>
+          <div className="privacy-note">
+            <strong>Provider calls leave your machine.</strong>
+            <span>Review each provider’s data practices. Credentials are configured in your environment, not saved in workflow JSON.</span>
           </div>
         </section>
 
@@ -514,7 +505,7 @@ export function LandingPage({
           <div className="landing-section-heading">
             <span className="landing-kicker">08 · FAQ</span>
             <h2>Frequently asked questions</h2>
-            <p>Short answers. Longer ones live in the repo — every claim here is verifiable in the workflow inspector.</p>
+            <p>What it does, what it costs, and where your data goes.</p>
           </div>
           <div className="faq-list">
             {faqs.map((f) => (
@@ -529,20 +520,20 @@ export function LandingPage({
         <section className="landing-onepager">
           <div>
             <span className="landing-kicker">09 · Next step</span>
-            <h2>Your rows. Your key. Zero platform fee.</h2>
-            <p>No account, no card, no catch. Drop a CSV or Excel file, wire the nodes, test three rows, run the batch. The prepared sample needs no key — live calls need only your provider key in the backend environment.</p>
-            <small>Prepared sample figures are labelled as such. No email. <button type="button" onClick={downloadSample}>Download the sample output</button> (txt).</small>
+            <h2>Put your next dataset to work.</h2>
+            <p>Open the workspace, start with a spreadsheet or sample data, and build a workflow you can inspect. No n3rf account or platform fee. Live provider calls use your own credentials.</p>
+            <small>Want to see the example first? <button type="button" onClick={downloadSample}>Download the illustrative output</button> (txt).</small>
           </div>
           <Button className="landing-download-button" onClick={onOpenWorkspace}><Play /> Open the workspace <ArrowUpRight /></Button>
         </section>
 
         <footer className="landing-footer">
           <div className="landing-platform-reveal">
-            <p>Every claim on this page is verifiable in the repo — 35 nodes, FastAPI + SQLite, samples labelled. <button type="button" onClick={() => goTo("landing-artifact")}>See the sample once more →</button></p>
+            <p>Try the workflow with your data, or inspect the prepared example before you begin. <button type="button" onClick={() => goTo("landing-artifact")}>View the example →</button></p>
             <Button onClick={onOpenWorkspace}>Open the workspace <ArrowUpRight /></Button>
           </div>
           <div className="landing-footer-meta">
-            <span>n3rf · Messy rows in, structured rows out · Your key, your data · © 2026 · Provided as-is without warranty. AI-generated data can be inaccurate, so always verify results.</span>
+            <span>n3rf · AI data workflows with visible, inspectable results · © 2026 · AI-generated information may be inaccurate. Verify important results. · <a href="/legal">About · Privacy · Terms · Data</a></span>
             <button type="button" onClick={onOpenWorkspace}>OPEN WORKSPACE <ChevronRight /></button>
           </div>
         </footer>
@@ -551,109 +542,51 @@ export function LandingPage({
   );
 }
 
-function SignalField({
-  aligned,
-  fallback,
-  onFallback,
-}: {
-  aligned: boolean;
-  fallback: "failed" | "disabled" | null;
-  onFallback: (fallback: "failed" | "disabled") => void;
-}) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const alignedRef = useRef(aligned);
-  alignedRef.current = aligned;
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || window.matchMedia("(prefers-reduced-motion: reduce)").matches || window.innerWidth < 640) {
-      onFallback("disabled");
-      return;
-    }
-    if (!canvas.getContext("webgl2") && !canvas.getContext("webgl")) {
-      onFallback("failed");
-      return;
-    }
-
-    let disposed = false;
-    let initialized = false;
-    let visible = false;
-    let frame = 0;
-    let startTime = 0;
-    let signalField: import("./lib/signal-field").SignalField | null = null;
-    let resizeObserver: ResizeObserver | null = null;
-    const intersectionObserver = new IntersectionObserver(([entry]) => {
-      visible = Boolean(entry?.isIntersecting);
-      if (!visible) {
-        window.cancelAnimationFrame(frame);
-        return;
-      }
-      if (!initialized) {
-        initialized = true;
-        void initialize();
-        return;
-      }
-      startTime = performance.now();
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(animate);
-    });
-
-    function animate(time: number) {
-      if (!visible || disposed || !signalField) return;
-      signalField.render((time - startTime) / 1000, alignedRef.current);
-      frame = window.requestAnimationFrame(animate);
-    }
-
-    async function initialize() {
-      try {
-        const { createSignalField } = await import("./lib/signal-field");
-        if (disposed || !canvas) return;
-        signalField = createSignalField(canvas);
-        resizeObserver = new ResizeObserver(() => signalField?.resize());
-        resizeObserver.observe(canvas);
-        if (visible) {
-          startTime = performance.now();
-          frame = window.requestAnimationFrame(animate);
-        }
-      } catch {
-        if (!disposed) onFallback("failed");
-      }
-    }
-
-    intersectionObserver.observe(canvas);
-    return () => {
-      disposed = true;
-      window.cancelAnimationFrame(frame);
-      resizeObserver?.disconnect();
-      intersectionObserver?.disconnect();
-      signalField?.dispose();
-    };
-  }, [onFallback]);
-
+function HeroWorkflowPreview() {
   return (
-    <>
-      <canvas
-        ref={canvasRef}
-        className={`signal-canvas${aligned ? " is-aligned" : ""}${fallback ? ` signal-canvas-${fallback}` : ""}`}
-        aria-hidden="true"
-      />
-      <svg className="signal-field" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <g className="signal-orbits" fill="none" stroke="var(--purple-light)" strokeWidth="1">
-        <path d="M110 130h104l34 34h72M190 260h104l34-34h96M135 390h94l36-36h130" />
-        <path d="M248 164v54l-42 42 42 42v32M394 164v28l-32 32v64l32 32v34" />
-      </g>
-      <g className="signal-points" fill="var(--info)">
-        {Array.from({ length: 24 }, (_, index) => {
-          const x = 180 + ((index * 71 + 13) % 390);
-          const y = 45 + ((index * 97 + 29) % 420);
-          return <rect key={index} x={x} y={y} width="2" height="2" opacity={index % 2 ? 0.25 : 0.42} />;
-        })}
-      </g>
-      <g className="signal-streams" fill="none" stroke="var(--info)" strokeWidth="1">
-        <path d="M110 130h104l34 34h72M190 260h104l34-34h96M135 390h94l36-36h130" />
-      </g>
-      <rect className="signal-accent-particle" x="110" y="127" width="6" height="6" fill="var(--accent)" />
-      </svg>
-    </>
+    <figure className="hero-workflow-preview" aria-label="Illustrative company research workflow canvas">
+      <div className="hero-workflow-window">
+        <div className="hero-workflow-toolbar">
+          <div className="hero-workflow-title">
+            <Workflow />
+            <span>COMPANY RESEARCH</span>
+          </div>
+          <span className="hero-workflow-state"><i /> PREVIEW</span>
+        </div>
+        <div className="hero-workflow-canvas">
+          <svg className="hero-workflow-connectors" viewBox="0 0 420 200" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M168 45H252M328 76V124M252 155H168" />
+          </svg>
+          <article className="hero-workflow-node hero-workflow-input">
+            <span className="hero-workflow-node-icon"><FileCheck2 /></span>
+            <span className="hero-workflow-node-kind">INPUT · CSV</span>
+            <strong>Company list</strong>
+            <small>500 rows</small>
+          </article>
+          <article className="hero-workflow-node hero-workflow-search">
+            <span className="hero-workflow-node-icon"><Search /></span>
+            <span className="hero-workflow-node-kind">RESEARCH</span>
+            <strong>Find signals</strong>
+            <small>Web search</small>
+          </article>
+          <article className="hero-workflow-node hero-workflow-ai">
+            <span className="hero-workflow-node-icon"><Brain /></span>
+            <span className="hero-workflow-node-kind">AI STEP</span>
+            <strong>Summarize fit</strong>
+            <small>Per row</small>
+          </article>
+          <article className="hero-workflow-node hero-workflow-output">
+            <span className="hero-workflow-node-icon"><FileCheck2 /></span>
+            <span className="hero-workflow-node-kind">RESULTS</span>
+            <strong>Clean output</strong>
+            <small>341 rows kept</small>
+          </article>
+        </div>
+        <figcaption className="hero-workflow-caption">
+          <span><i /> ROWS THROUGH EVERY STEP</span>
+          <span>ILLUSTRATIVE SAMPLE</span>
+        </figcaption>
+      </div>
+    </figure>
   );
 }

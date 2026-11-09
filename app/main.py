@@ -76,6 +76,14 @@ def create_app() -> FastAPI:
     def app_subpath(rest: str) -> FileResponse:
         return _index_response()
 
+    @application.get("/alternatives/claygent", include_in_schema=False)
+    def claygent_alternative() -> FileResponse:
+        return _index_response()
+
+    @application.get("/legal", include_in_schema=False)
+    def legal_page() -> FileResponse:
+        return _index_response()
+
     @application.get("/eva01-tokens.css", include_in_schema=False)
     def editor_tokens() -> FileResponse:
         return FileResponse(STATIC_DIR / "eva01-tokens.css", media_type="text/css")

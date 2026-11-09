@@ -4,6 +4,7 @@ import tempfile
 import httpx
 import pytest
 
+from app import main as main_module
 from app.engine import RunContext
 from app.errors import NodeError
 from app.main import app
@@ -14,6 +15,22 @@ def test_catalog_run_and_durable_run_history(monkeypatch):
     with tempfile.TemporaryDirectory() as directory:
         monkeypatch.setenv("N3RF_DB_PATH", f"{directory}/runs.sqlite3")
         asyncio.run(_exercise_api())
+
+
+def test_frontend_information_routes_serve_frontend(monkeypatch, tmp_path):
+    (tmp_path / "index.html").write_text("<html>n3rf frontend</html>", encoding="utf-8")
+    monkeypatch.setattr(main_module, "FRONTEND_DIST", tmp_path)
+    asyncio.run(_assert_information_routes())
+
+
+async def _assert_information_routes():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        for path in ("/alternatives/claygent", "/legal"):
+            response = await client.get(path)
+            assert response.status_code == 200
+            assert "n3rf frontend" in response.text
 
 
 async def _exercise_api():
