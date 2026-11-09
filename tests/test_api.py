@@ -17,20 +17,22 @@ def test_catalog_run_and_durable_run_history(monkeypatch):
         asyncio.run(_exercise_api())
 
 
-def test_frontend_information_routes_serve_frontend(monkeypatch, tmp_path):
+def test_self_hosted_frontend_routes_serve_frontend(monkeypatch, tmp_path):
     (tmp_path / "index.html").write_text("<html>n3rf frontend</html>", encoding="utf-8")
     monkeypatch.setattr(main_module, "FRONTEND_DIST", tmp_path)
-    asyncio.run(_assert_information_routes())
+    asyncio.run(_assert_self_hosted_routes())
 
 
-async def _assert_information_routes():
+async def _assert_self_hosted_routes():
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
-        for path in ("/alternatives/claygent", "/legal"):
+        for path in ("/", "/app", "/app/models", "/app/workflows", "/app/editor"):
             response = await client.get(path)
             assert response.status_code == 200
             assert "n3rf frontend" in response.text
+        for path in ("/alternatives/claygent", "/legal"):
+            assert (await client.get(path)).status_code == 404
 
 
 async def _exercise_api():

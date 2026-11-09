@@ -27,6 +27,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Button } from "./components/ui/button";
+import { SELF_HOSTING_URL } from "./links";
 import "./styles/landing.css";
 
 const enrichedCompanies = [
@@ -140,11 +141,7 @@ const faqs = [
   },
 ];
 
-export function LandingPage({
-  onOpenWorkspace,
-}: {
-  onOpenWorkspace: () => void;
-}) {
+export function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -228,14 +225,14 @@ export function LandingPage({
         <button className="landing-audience" type="button" onClick={() => goTo("landing-hero")}>
           <Workflow /> <span>FOR: OPS ANALYSTS WITH MESSY SHEETS</span>
         </button>
-        <nav aria-label="Product page">
+        <nav aria-label="Marketing site">
           <button type="button" onClick={() => goTo("landing-what")}>Examples</button>
           <button type="button" onClick={() => goTo("landing-how")}>How it works</button>
           <button type="button" onClick={() => goTo("landing-pricing")}>Costing</button>
           <button type="button" onClick={() => goTo("landing-why")}>Why n3rf</button>
           <button type="button" onClick={() => goTo("landing-faq")}>FAQ</button>
         </nav>
-        <Button variant="primary" onClick={onOpenWorkspace}><Upload /> Open workspace <ArrowUpRight /></Button>
+        <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}><Upload /> Self-host n3rf <ArrowUpRight /></a>
       </header>
 
       <section className="landing-hero" id="landing-hero">
@@ -255,27 +252,26 @@ export function LandingPage({
                   your data, use your own AI provider, and see what each step did.
                 </p>
                 <div className="landing-hero-actions">
-                  <Button
-                    variant="primary"
-                    onClick={onOpenWorkspace}
+                  <a
+                    className="ui-button ui-button-md ui-button-primary"
+                    href={SELF_HOSTING_URL}
                     onPointerMove={tiltElement}
                     onPointerLeave={resetTilt}
                   >
-                    <Upload /> Open the workspace
-                  </Button>
+                    <Upload /> Get started
+                  </a>
                   <Button variant="ghost" onClick={() => goTo("landing-how")}>How it works <ArrowDown /></Button>
                   <p className="landing-sample-note">No account needed · CSV, TSV, or .xlsx up to 10 MB. <button type="button" onClick={() => goTo("landing-artifact")}>Preview an example ↓</button></p>
                 </div>
-                <button
+                <a
                   className="landing-upload"
-                  type="button"
-                  onClick={onOpenWorkspace}
+                  href={SELF_HOSTING_URL}
                   aria-label="Open the n3rf workspace"
                 >
                   <Upload />
-                  <span>Start with a spreadsheet or sample data</span>
+                  <span>Self-host n3rf and start with your data</span>
                   <ChevronRight />
-                </button>
+                </a>
               </div>
               <HeroWorkflowPreview />
             </div>
@@ -524,17 +520,17 @@ export function LandingPage({
             <p>Open the workspace, start with a spreadsheet or sample data, and build a workflow you can inspect. No n3rf account or platform fee. Live provider calls use your own credentials.</p>
             <small>Want to see the example first? <button type="button" onClick={downloadSample}>Download the illustrative output</button> (txt).</small>
           </div>
-          <Button className="landing-download-button" onClick={onOpenWorkspace}><Play /> Open the workspace <ArrowUpRight /></Button>
+          <a className="ui-button ui-button-md ui-button-primary landing-download-button" href={SELF_HOSTING_URL}><Play /> Self-host n3rf <ArrowUpRight /></a>
         </section>
 
         <footer className="landing-footer">
           <div className="landing-platform-reveal">
             <p>Try the workflow with your data, or inspect the prepared example before you begin. <button type="button" onClick={() => goTo("landing-artifact")}>View the example →</button></p>
-            <Button onClick={onOpenWorkspace}>Open the workspace <ArrowUpRight /></Button>
+            <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>Get started with n3rf <ArrowUpRight /></a>
           </div>
           <div className="landing-footer-meta">
             <span>n3rf · AI data workflows with visible, inspectable results · © 2026 · AI-generated information may be inaccurate. Verify important results. · <a href="/legal">About · Privacy · Terms · Data</a></span>
-            <button type="button" onClick={onOpenWorkspace}>OPEN WORKSPACE <ChevronRight /></button>
+            <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>SELF-HOST N3RF <ChevronRight /></a>
           </div>
         </footer>
       </div>

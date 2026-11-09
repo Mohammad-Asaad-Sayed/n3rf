@@ -53,12 +53,10 @@ import {
   useState,
 } from "react";
 import { Button } from "./components/ui/button";
+import { Input, Select, Textarea } from "./components/ui/fields";
 import { NodeLibrary } from "./components/editor/NodeLibrary";
 import { DataGrid, type GridCellSelection } from "./components/grid/DataGrid";
 import { CellDetails } from "./components/grid/CellDetails";
-import { ClaygentAlternativePage } from "./ClaygentAlternativePage";
-import { LegalPage } from "./LegalPage";
-import { LandingPage } from "./LandingPage";
 import { Tooltip, TooltipProvider } from "./components/ui/tooltip";
 import {
   apiFetch,
@@ -126,49 +124,36 @@ export function App() {
   }, []);
 
   const { pathname, hash } = url;
-  const isLanding = pathname === "/";
-  const isClaygentAlternative = pathname === "/alternatives/claygent";
-  const isLegalPage = pathname === "/legal";
 
   useEffect(() => {
-    document.title = isLegalPage
-      ? "About, privacy, terms, and data | n3rf"
-      : isClaygentAlternative
-        ? "Claygent alternative for row-by-row AI research | n3rf"
-        : isLanding
-          ? "AI data workflows for messy rows | n3rf"
-          : "n3rf — workflow editor";
-    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (description) {
-      description.content = isLegalPage
-        ? "Read about n3rf, its privacy practices, terms of use, and how data flows through a self-hosted instance."
-        : "Build AI data workflows for messy rows. Run locally with your own AI provider, and inspect results at every step.";
-    }
-  }, [isLanding, isClaygentAlternative, isLegalPage]);
+    document.title = pathname === "/app/models"
+      ? "Model settings | n3rf"
+      : pathname === "/app/workflows"
+        ? "Saved workflows | n3rf"
+        : "n3rf — self-hosted workflow editor";
+  }, [pathname]);
 
   // Legacy hash URLs (#/home, #/editor, #/models, #/landing...) -> clean paths.
   useEffect(() => {
     if (pathname !== "/") return;
-    if (hash === "#/landing") {
-      window.history.replaceState(null, "", "/");
-      setUrl({ pathname: "/", hash: "" });
-    } else if (hash === "#/home" || hash === "#/landingpage") {
+    if (hash === "#/home" || hash === "#/landingpage") {
       window.history.replaceState(null, "", "/app");
       setUrl({ pathname: "/app", hash: "" });
     } else if (hash.startsWith("#/editor")) {
       const rest = hash.slice("#/editor".length);
-      const target = rest ? `/app?workflow=${encodeURIComponent(rest.slice(1))}` : "/app";
+      const target = rest ? `/app/editor?workflow=${encodeURIComponent(rest.slice(1))}` : "/app/editor";
       window.history.replaceState(null, "", target);
-      setUrl({ pathname: "/app", hash: "" });
+      setUrl({ pathname: "/app/editor", hash: "" });
     } else if (hash === "#/models") {
       window.history.replaceState(null, "", "/app/models");
       setUrl({ pathname: "/app/models", hash: "" });
     }
   }, [pathname, hash]);
 
-  const openWorkspace = () => { window.location.href = "/app"; };
   const openEditor = (id?: string) => {
-    window.location.href = id ? `/app?workflow=${encodeURIComponent(id)}` : "/app";
+    window.location.href = id
+      ? `/app/editor?workflow=${encodeURIComponent(id)}`
+      : "/app/editor";
   };
   const openModels = () => { window.location.href = "/app/models"; };
 
@@ -177,7 +162,7 @@ export function App() {
   if (pathname.startsWith("/app/editor")) {
     return <WorkflowEditor key={pathname + hash + window.location.search} />;
   }
-  if (pathname === "/app" || pathname === "/app/") {
+  if (pathname === "/" || pathname === "/app" || pathname === "/app/") {
     return <AppPage />;
   }
   if (pathname === "/app/models") return <ModelSettingsPage />;
@@ -190,17 +175,7 @@ export function App() {
       />
     );
   }
-  if (isClaygentAlternative) {
-    return <ClaygentAlternativePage onOpenWorkspace={openWorkspace} />;
-  }
-  if (isLegalPage) {
-    return <LegalPage />;
-  }
-  if (isLanding) {
-    return <LandingPage onOpenWorkspace={openWorkspace} />;
-  }
-
-  return <LandingPage onOpenWorkspace={openWorkspace} />;
+  return <AppPage />;
 }
 
 function HomePage({
@@ -307,7 +282,14 @@ function HomePage({
         </a>
         <div className="home-status"><span />LOCAL WORKSPACE</div>
         <Button variant="ghost" onClick={onModels}><Settings2 /> Models</Button>
-        <Button variant="ghost" onClick={() => { window.location.href = "/"; }}><FileText /> Product page</Button>
+        <a
+          className="ui-button ui-button-md ui-button-ghost"
+          href="https://github.com/Mohammad-Asaad-Sayed/n3rf/blob/main/docs/self-hosting.md"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <FileText /> Self-hosting guide
+        </a>
         <Button variant="primary" onClick={onCreate}><Plus /> New workflow</Button>
       </header>
 
@@ -581,11 +563,11 @@ function ModelSettingsPage() {
           <form className="profile-form" onSubmit={(event) => void saveProfile(event)}>
             <div className="profile-form-heading"><span className="profile-form-icon"><Settings2 /></span><div><span className="home-eyebrow">OPENAI-COMPATIBLE</span><h2>{profileId ? "Edit provider" : "Configure a provider"}</h2></div></div>
             <div className="profile-fields">
-              <label className="form-field"><span className="field-label">Profile name</span><input className="form-control" required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="My local model" /></label>
-              <label className="form-field"><span className="field-label">API base URL</span><input className="form-control" required type="url" value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="http://localhost:11434/v1" /></label>
-              <label className="form-field"><span className="field-label">Chat model</span><input className="form-control" required value={model} onChange={(event) => setModel(event.target.value)} placeholder="model-name" /></label>
-              <label className="form-field"><span className="field-label">API key environment variable <span>NEVER STORED</span></span><input className="form-control" value={apiKeyEnv} onChange={(event) => setApiKeyEnv(event.target.value)} placeholder="OPENAI_API_KEY (blank for local providers)" /><small className="field-hint">Set this variable in the shell that starts FastAPI. Leave blank for providers that do not require a key. Or paste a key below to test once.</small></label>
-              <label className="form-field"><span className="field-label">API key (paste to test — never saved) <span>RUN ONLY</span></span><input className="form-control" type="password" autoComplete="off" spellCheck={false} value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="Paste a key to test the connection once" /><small className="field-hint">Used for the connection test only. Never saved in SQLite or localStorage.</small></label>
+              <label className="form-field"><span className="field-label">Profile name</span><Input required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="My local model" /></label>
+              <label className="form-field"><span className="field-label">API base URL</span><Input required type="url" value={baseUrl} onChange={(event) => setBaseUrl(event.target.value)} placeholder="http://localhost:11434/v1" /></label>
+              <label className="form-field"><span className="field-label">Chat model</span><Input required value={model} onChange={(event) => setModel(event.target.value)} placeholder="model-name" /></label>
+              <label className="form-field"><span className="field-label">API key environment variable <span>NEVER STORED</span></span><Input value={apiKeyEnv} onChange={(event) => setApiKeyEnv(event.target.value)} placeholder="OPENAI_API_KEY (blank for local providers)" /><small className="field-hint">Set this variable in the shell that starts FastAPI. Leave blank for providers that do not require a key. Or paste a key below to test once.</small></label>
+              <label className="form-field"><span className="field-label">API key (paste to test — never saved) <span>RUN ONLY</span></span><Input type="password" autoComplete="off" spellCheck={false} value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="Paste a key to test the connection once" /><small className="field-hint">Used for the connection test only. Never saved in SQLite or localStorage.</small></label>
             </div>
             {message && <p className="profile-feedback success" role="status">{message}</p>}
             {error && <p className="profile-feedback error" role="alert">{error}</p>}
@@ -2161,9 +2143,8 @@ function WorkflowEditor({
                     <label className="field-label" htmlFor="column-name">
                       Column name
                     </label>
-                    <input
+                    <Input
                       id="column-name"
-                      className="form-control"
                       placeholder="new_column"
                       value={selectedColumn}
                       onChange={(event) => setSelectedColumn(event.target.value)}
@@ -2178,9 +2159,8 @@ function WorkflowEditor({
                     <label className="field-label" htmlFor="column-node-type">
                       Node type
                     </label>
-                    <select
+                    <Select
                       id="column-node-type"
-                      className="form-control"
                       value={columnDraftType}
                       onChange={(event) => {
                         const nextType = event.target.value;
@@ -2196,7 +2176,7 @@ function WorkflowEditor({
                             {spec.group} · {spec.name}
                           </option>
                         ))}
-                    </select>
+                    </Select>
                   </div>
                   {columnDraftSpec && (
                     <div className="inspector-fields">
@@ -2283,9 +2263,8 @@ function WorkflowEditor({
                   {selectedSpec.group === "ai" && (
                     <div className="model-profile-picker">
                       <label className="field-label" htmlFor="model-profile">MODEL PROFILE</label>
-                      <select
+                      <Select
                         id="model-profile"
-                        className="form-control"
                         value={modelProfiles.find((profile) =>
                           selected.params.provider === "custom" &&
                           profile.base_url === selected.params.base_url &&
@@ -2298,7 +2277,7 @@ function WorkflowEditor({
                         {modelProfiles.map((profile) => (
                           <option value={profile.id} key={profile.id}>{profile.name} · {profile.model}</option>
                         ))}
-                      </select>
+                      </Select>
                       <button type="button" className="model-settings-link" onClick={() => { window.location.href = "/app/models"; }}>
                         {modelProfiles.length ? "Manage model profiles" : "Configure a model provider"} <ArrowUpRight />
                       </button>
@@ -2604,9 +2583,8 @@ function ExpressionInput({
       {templates.length > 0 && (
         <label className="field-chip-label" htmlFor={`${id}-template`}>
           <span>Start from a template</span>
-          <select
+          <Select
             id={`${id}-template`}
-            className="form-control"
             value={templateChoice}
             onChange={(event) => {
               setTemplateChoice("");
@@ -2623,13 +2601,13 @@ function ExpressionInput({
                 {template.label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
       {multiline ? (
-        <textarea {...inputProps} ref={(element) => { inputRef.current = element; }} />
+        <Textarea {...inputProps} ref={(element) => { inputRef.current = element; }} />
       ) : (
-        <input {...inputProps} ref={(element) => { inputRef.current = element; }} type="text" />
+        <Input {...inputProps} ref={(element) => { inputRef.current = element; }} type="text" />
       )}
       <button
         type="button"
@@ -2707,9 +2685,8 @@ function FieldNameControl({
   const [custom, setCustom] = useState(!known && value.trim() !== "");
   return (
     <div>
-      <select
+      <Select
         id={id}
-        className="form-control"
         value={custom ? "__custom__" : value.trim() || names[0] || ""}
         onChange={(event) => {
           if (event.target.value === "__custom__") {
@@ -2726,10 +2703,9 @@ function FieldNameControl({
           </option>
         ))}
         <option value="__custom__">Other — type a name</option>
-      </select>
+      </Select>
       {custom && (
-        <input
-          className="form-control"
+        <Input
           type="text"
           placeholder="Column name"
           value={value}
@@ -2817,8 +2793,7 @@ function ConditionControl({
     <fieldset className="condition-builder">
       <legend className="condition-builder-title">Keep rows where</legend>
       <div className="condition-row">
-        <select
-          className="form-control"
+        <Select
           aria-label="Column"
           value={names.includes(field) ? field : names[0] ?? field}
           onChange={(event) => onChange(buildCondition(event.target.value, operator, textValue))}
@@ -2828,9 +2803,8 @@ function ConditionControl({
               {humanizeFieldLabel(name)}
             </option>
           ))}
-        </select>
-        <select
-          className="form-control"
+        </Select>
+        <Select
           aria-label="Operator"
           value={operator}
           onChange={(event) => onChange(buildCondition(field, event.target.value, textValue))}
@@ -2840,10 +2814,9 @@ function ConditionControl({
               {item.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
-      <input
-        className="form-control"
+      <Input
         type="text"
         placeholder='Value, e.g. software, 42, true'
         aria-label="Value to match"
@@ -2881,8 +2854,8 @@ function JsonControl({
       typeof value === "string" ? value : JSON.stringify(value ?? {}, null, 2);
     return (
       <div>
-        <textarea
-          className="form-control code-control"
+        <Textarea
+          className="code-control"
           value={rawText}
           onChange={(event) => {
             const text = event.target.value;
@@ -2914,8 +2887,7 @@ function JsonControl({
               {columns.map((column) => (
                 <label className="json-cell" key={column}>
                   <span>{humanizeFieldLabel(column)}</span>
-                  <input
-                    className="form-control"
+                  <Input
                     value={String(row[column] ?? "")}
                     aria-label={column}
                     onChange={(event) => {
@@ -2961,8 +2933,7 @@ function JsonControl({
     const current = schemaPresetLabel(parsed);
     return (
       <div>
-        <select
-          className="form-control"
+        <Select
           aria-label="What the model returns"
           value={current}
           onChange={(event) => {
@@ -2977,7 +2948,7 @@ function JsonControl({
             </option>
           ))}
           <option value="custom">Custom (edit JSON directly)</option>
-        </select>
+        </Select>
         <button type="button" className="model-settings-link" onClick={() => setShowRaw(true)}>
           Edit as JSON (advanced)
         </button>
@@ -2991,8 +2962,7 @@ function JsonControl({
     <div>
       {entries.map(([key, entryValue], index) => (
         <div className="json-pair" key={`${key}-${index}`}>
-          <input
-            className="form-control"
+          <Input
             placeholder="Name"
             aria-label="Name"
             value={key}
@@ -3003,8 +2973,7 @@ function JsonControl({
               onChange(Object.fromEntries(next));
             }}
           />
-          <input
-            className="form-control"
+          <Input
             placeholder="Value"
             aria-label="Value"
             value={typeof entryValue === "string" ? entryValue : JSON.stringify(entryValue)}
@@ -3107,13 +3076,13 @@ function ParamControl({
     );
   } else if (param.type === "select") {
     control = (
-      <select id={inputId} className="form-control" value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}>
+      <Select id={inputId} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}>
         {(param.options || []).map((option) => (
           <option value={option} key={option}>
             {humanizeOption(option)}
           </option>
         ))}
-      </select>
+      </Select>
     );
   } else if (param.type === "rows") {
     control = (
@@ -3126,14 +3095,13 @@ function ParamControl({
       />
     );
   } else if (param.type === "file") {
-    control = <input id={inputId} className="form-control file-control" type="file" onChange={onUpload} />;
+    control = <Input id={inputId} className="file-control" type="file" onChange={onUpload} />;
   } else if (param.type === "json") {
     control = <JsonControl paramKey={param.key} value={value} onChange={onChange} />;
   } else if (param.type === "code") {
     control = (
       <div>
-        <select
-          className="form-control"
+        <Select
           aria-label="Start from a template"
           value={presetChoice}
           onChange={(event) => {
@@ -3148,10 +3116,10 @@ function ParamControl({
               {preset.label}
             </option>
           ))}
-        </select>
-        <textarea
+        </Select>
+        <Textarea
           id={inputId}
-          className="form-control code-control"
+          className="code-control"
           value={stringValue}
           onChange={updateText}
           aria-label="Your custom step (Python)"
@@ -3163,9 +3131,8 @@ function ParamControl({
     control = (
       <div className="number-control">
         <button type="button" aria-label="Decrease" onClick={() => onChange(numeric - 1)}>−</button>
-        <input
+        <Input
           id={inputId}
-          className="form-control"
           type="number"
           value={stringValue}
           onChange={updateText}
@@ -3177,7 +3144,7 @@ function ParamControl({
     const example = typeof param.default === "string" ? param.default : "";
     control = (
       <div>
-        <textarea id={inputId} className="form-control" value={stringValue} onChange={updateText} />
+        <Textarea id={inputId} value={stringValue} onChange={updateText} />
         {example && example !== stringValue && (
           <button type="button" className="model-settings-link" onClick={() => onChange(example)}>
             Restore the example
@@ -3188,7 +3155,7 @@ function ParamControl({
   } else if (param.key === "model" || param.key === "embedding_model") {
     control = (
       <div>
-        <input id={inputId} className="form-control" type="text" list="model-suggestions" value={stringValue} onChange={updateText} />
+        <Input id={inputId} type="text" list="model-suggestions" value={stringValue} onChange={updateText} />
         <datalist id="model-suggestions">
           {MODEL_SUGGESTIONS.map((model) => (
             <option key={model} value={model} />
@@ -3199,14 +3166,14 @@ function ParamControl({
   } else if (param.key === "api_key" || param.type === "password") {
     control = (
       <div>
-        <input id={inputId} className="form-control" type="password" autoComplete="off" spellCheck={false} value={stringValue} onChange={updateText} placeholder="Paste a key for this run only" />
+        <Input id={inputId} type="password" autoComplete="off" spellCheck={false} value={stringValue} onChange={updateText} placeholder="Paste a key for this run only" />
         <p className="field-hint">Never saved or logged. Leave blank to use the env var above.</p>
       </div>
     );
   } else if (param.key === "api_key_env") {
     control = (
       <div>
-        <input id={inputId} className="form-control" type="text" list="env-suggestions" value={stringValue} onChange={updateText} />
+        <Input id={inputId} type="text" list="env-suggestions" value={stringValue} onChange={updateText} />
         <datalist id="env-suggestions">
           {ENV_SUGGESTIONS.map((name) => (
             <option key={name} value={name} />
@@ -3217,7 +3184,7 @@ function ParamControl({
     );
   } else {
     control = (
-      <input id={inputId} className="form-control" type="text" value={stringValue} onChange={updateText} />
+      <Input id={inputId} type="text" value={stringValue} onChange={updateText} />
     );
   }
 
@@ -3263,8 +3230,7 @@ function RowsControl({
           {columns.map((column) => {
             const cellId = `param-${param.key}-${index}-${column.key}`;
             const editor = column.type === "select" ? (
-              <select
-                className="form-control"
+              <Select
                 key={column.key}
                 id={cellId}
                 value={String(row[column.key] ?? "")}
@@ -3276,7 +3242,7 @@ function RowsControl({
                     {humanizeOption(option)}
                   </option>
                 ))}
-              </select>
+              </Select>
             ) : column.type === "boolean" ? (
               <input
                 key={column.key}
@@ -3306,8 +3272,7 @@ function RowsControl({
                 onChange={(nextValue) => updateCell(index, column.key, nextValue)}
               />
             ) : (
-              <input
-                className="form-control"
+              <Input
                 key={column.key}
                 id={cellId}
                 type={column.type === "number" ? "number" : "text"}

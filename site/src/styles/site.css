@@ -1,0 +1,44 @@
+@import url("../../../app/static/eva01-tokens.css");
+
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: var(--surface-void); color: var(--text-primary); font: var(--type-body-s-size)/var(--type-body-s-lh) var(--font-ui); }
+button, input, textarea, select { color: inherit; font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 0; box-shadow: var(--focus-ring); }
+svg { flex: 0 0 auto; }
+a { color: inherit; }
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid var(--line-hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font: 600 var(--type-label-size)/var(--type-label-lh) var(--font-display);
+  letter-spacing: var(--type-label-track);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background var(--dur-micro) var(--ease), border-color var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease), transform var(--dur-micro) var(--ease);
+}
+.ui-button svg { width: 14px; height: 14px; }
+.ui-button:hover:not(:disabled) { border-color: var(--purple-light); background: var(--surface-overlay); color: var(--text-primary); box-shadow: 0 0 12px color-mix(in srgb, var(--purple-light) 30%, transparent); }
+.ui-button-primary:hover:not(:disabled) { box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 38%, transparent); }
+.ui-button:active:not(:disabled) { transform: translateY(1px); }
+.ui-button:disabled { cursor: not-allowed; opacity: .5; }
+.ui-button-md { height: var(--control-lg); padding: 0 12px; }
+.ui-button-sm { height: var(--control-sm); padding: 0 9px; }
+.ui-button-primary { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.ui-button-primary:hover:not(:disabled) { border-color: var(--accent-dim); background: var(--accent-dim); color: var(--on-accent); }
+.ui-button-ghost { border-color: transparent; background: transparent; color: var(--text-tertiary); }

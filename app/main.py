@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
     application.include_router(workflows_router)
     application.include_router(upload_router)
 
-    # Micro-SaaS split hosting: static frontend may call this API cross-origin.
+    # Allow cross-origin frontend requests without credentialed cookies.
     # Secrets never travel in URLs; model keys live only in this process env.
     application.add_middleware(
         CORSMiddleware,
@@ -58,7 +58,7 @@ def create_app() -> FastAPI:
             raise HTTPException(
                 status_code=503,
                 detail=(
-                    "Frontend build is missing. Run "
+                    "Self-hosted app build is missing. Run "
                     "'cd frontend && pnpm install && pnpm run build'."
                 ),
             )
@@ -74,14 +74,6 @@ def create_app() -> FastAPI:
 
     @application.get("/app/{rest:path}", include_in_schema=False)
     def app_subpath(rest: str) -> FileResponse:
-        return _index_response()
-
-    @application.get("/alternatives/claygent", include_in_schema=False)
-    def claygent_alternative() -> FileResponse:
-        return _index_response()
-
-    @application.get("/legal", include_in_schema=False)
-    def legal_page() -> FileResponse:
         return _index_response()
 
     @application.get("/eva01-tokens.css", include_in_schema=False)

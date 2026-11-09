@@ -8,7 +8,7 @@ import {
   Rows3,
   Workflow,
 } from "lucide-react";
-import { Button } from "./components/ui/button";
+import { SELF_HOSTING_URL } from "./links";
 import "./styles/landing.css";
 
 const comparison = [
@@ -37,19 +37,15 @@ const steps = [
   },
 ];
 
-export function ClaygentAlternativePage({
-  onOpenWorkspace,
-}: {
-  onOpenWorkspace: () => void;
-}) {
+export function ClaygentAlternativePage() {
   return (
     <main className="landing-shell claygent-page">
       <header className="landing-nav claygent-nav">
         <a className="claygent-brand" href="/" aria-label="n3rf home">n3rf</a>
         <a className="claygent-back" href="/"><ArrowLeft aria-hidden="true" /> Back to n3rf</a>
-        <Button variant="primary" onClick={onOpenWorkspace}>
-          Try n3rf <ArrowUpRight aria-hidden="true" />
-        </Button>
+        <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>
+          Self-host n3rf <ArrowUpRight aria-hidden="true" />
+        </a>
       </header>
 
       <div className="landing-content">
@@ -62,9 +58,9 @@ export function ClaygentAlternativePage({
             providers, and row counts visible at every step.
           </p>
           <div className="claygent-hero-actions">
-            <Button variant="primary" onClick={onOpenWorkspace}>
+            <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>
               Build a research workflow <ArrowUpRight aria-hidden="true" />
-            </Button>
+            </a>
             <span><KeyRound aria-hidden="true" /> No n3rf account or platform fee</span>
           </div>
           <p className="claygent-disclaimer">
@@ -136,9 +132,9 @@ export function ClaygentAlternativePage({
               you want a custom, inspectable AI research workflow over a dataset.
             </p>
           </div>
-          <Button variant="primary" onClick={onOpenWorkspace}>
-            Open n3rf <ArrowUpRight aria-hidden="true" />
-          </Button>
+          <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}>
+            Self-host n3rf <ArrowUpRight aria-hidden="true" />
+          </a>
         </section>
 
         <footer className="claygent-footer">

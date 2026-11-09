@@ -206,9 +206,10 @@ minor inconvenience.
 | Engine | plain asyncio, in-process | no Celery/Redis until runs exceed ~60s |
 | LLM | httpx.AsyncClient | one client, all providers |
 | Validation | jsonschema | LLM output + node params |
-| Storage | SQLAlchemy + SQLite | ORM-backed CRUD; `N3RF_DATABASE_URL` selects a supported database |
+| Storage | SQLAlchemy + SQLite + Alembic | ORM-backed CRUD and versioned schema migrations; `N3RF_DATABASE_URL` selects a supported database |
 | Tests | pytest, mock provider | the whole suite runs offline in 5s |
-| Editor | React SPA with accessible shadcn-style primitives | FastAPI serves the static production build; one deployment origin |
+| Self-hosted editor | React SPA with accessible shadcn-style primitives | FastAPI serves the production app and API from one origin |
+| Public site | Separate React/Vite static build in `site/` | Marketing pages deploy independently and link to GitHub self-hosting instructions |
 
 What is deliberately absent: Celery, Redis, Kafka, Docker-in-Docker, a Node
 runtime, a queue, a message bus. Each one is a real answer to a problem you do

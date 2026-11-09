@@ -321,6 +321,7 @@
   color: var(--text-meta);
   font: var(--type-mono-size)/var(--type-mono-lh) var(--font-mono);
   text-align: left;
+  text-decoration: none;
   transition: border-color var(--dur-micro) var(--ease), background var(--dur-micro) var(--ease), box-shadow var(--dur-micro) var(--ease);
 }
 .landing-upload > span { flex: 1; }

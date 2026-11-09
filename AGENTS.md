@@ -75,14 +75,26 @@ app/
   sandbox.py         child process, rlimits, audit hook
   static/
     eva01-tokens.css shared design tokens
+migrations/
+  env.py             Alembic migration environment
+  versions/          Versioned database schema changes
+alembic.ini          Alembic configuration
 frontend/
   src/
     components/ui/   shadcn-style accessible primitives
     styles/          EVA-01 editor styling
-    App.tsx          home page, model settings, and workflow editor
+    App.tsx          workspace start screen, model settings, and workflow editor
   package.json       frontend tooling and dependencies
+site/
+  src/               React marketing, comparison, and project-information pages
+  legal/             standalone legal-page HTML entry
+  alternatives/      standalone comparison-page HTML entry
+  package.json       independent marketing-site tooling and dependencies
+docs/
+  self-hosting.md    installation, configuration, and data persistence guide
 tests/
   test_engine.py test_nodes.py test_expressions.py test_llm.py test_api.py
+  test_database.py  fresh and legacy schema migration coverage
 examples/
   demo.py            a real 6-node pipeline against a real model
 docs/                PRD.md, ARCHITECTURE.md, PLAN.md, TASKS.md, EVA01-DESIGN.md
@@ -96,21 +108,23 @@ Do not add a directory without updating this map.
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 uvicorn app.main:app --reload --port 8000     # API on :8000, /docs for OpenAPI
-# or, in one line from the project root (serves frontend dist + API together):
+# or, in one line from the project root (serves the self-hosted app + API together):
 .venv/bin/uvicorn app.main:app --reload --port 8000
 python examples/demo.py                       # end-to-end against a real model
 pytest -q                                     # must stay under 10s, fully offline
 ruff check app tests && ruff format --check app tests
 ```
 
-Open http://127.0.0.1:8000. FastAPI serves the production React editor and API from one
+Open http://127.0.0.1:8000. FastAPI serves the self-hosted workspace and API from one
 origin; the OpenAPI docs are at http://127.0.0.1:8000/docs.
 
 Build the React editor with `cd frontend && pnpm install && pnpm run build`. FastAPI serves the
 production build at `/`; during development, run Vite with `pnpm dev` and FastAPI separately.
+The public marketing site has an independent build: `cd site && pnpm install && pnpm run build`.
+Deploy `site/dist` to a static host; it has no dependency on the self-hosted API.
 
 **Verification before you claim a task is done:** `pytest -q` green, `ruff check` clean, and
 the editor loads with no console errors. If you touched anything user-facing, also confirm the
