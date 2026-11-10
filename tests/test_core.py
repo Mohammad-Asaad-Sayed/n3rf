@@ -211,7 +211,7 @@ def test_failed_node_returns_redacted_diagnostic_log(monkeypatch):
 
 def test_catalog_has_all_required_node_groups():
     catalog = load_all()
-    assert len(catalog) == 30
+    assert len(catalog) == 30  # firecrawl added (Nov 2026)
     assert {spec.group for spec in catalog.values()} == {
         "input",
         "transform",

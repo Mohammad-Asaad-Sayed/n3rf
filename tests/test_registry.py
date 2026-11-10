@@ -18,7 +18,7 @@ def test_load_all_is_idempotent():
     first = load_all()
     second = load_all()
     assert first is second
-    assert len(first) == 30
+    assert len(first) == 30  # firecrawl added (Nov 2026)
     assert load_all() == first
 
 

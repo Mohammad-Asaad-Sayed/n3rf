@@ -498,8 +498,59 @@ def test_exa_search_triple(monkeypatch):
         )
 
 
+def test_tavily(monkeypatch):
+    from app.nodes.enrichment import tavily
+
+    monkeypatch.setenv("TAVILY_API_KEY", "k")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/map"
+        return httpx.Response(
+            200,
+            json={
+                "results": [
+                    "https://docs.tavily.com",
+                    "https://docs.tavily.com/welcome",
+                ],
+                "response_time": 1.23,
+            },
+        )
+
+    _install_httpx(monkeypatch, handler)
+    ctx = RunContext(
+        {
+            "mode": "map",
+            "url": "{{website}}",
+            "api_key_env": "TAVILY_API_KEY",
+            "instructions": "",
+            "max_depth": 1,
+            "max_breadth": 20,
+            "limit": 10,
+            "allow_external": False,
+            "timeout": 10,
+            "concurrency": 1,
+            "max_output_rows": 10,
+            "on_error": "fail",
+        }
+    )
+    rows = asyncio.run(tavily([new_item({"website": "https://docs.tavily.com"})], ctx))
+    assert rows[0]["json"]["tavily_map_count"] == 2
+    assert rows[0]["json"]["tavily_map"] == [
+        "https://docs.tavily.com",
+        "https://docs.tavily.com/welcome",
+    ]
+    assert asyncio.run(tavily([], ctx)) == []
+    with pytest.raises(NodeError):
+        asyncio.run(
+            tavily(
+                [new_item({"website": "https://docs.tavily.com"})],
+                RunContext({**ctx.params, "max_depth": 99}),
+            )
+        )
+
+
 def test_tavily_extract_and_jina_bad_url(monkeypatch):
-    from app.nodes.enrichment import jina_reader, tavily_extract
+    from app.nodes.enrichment import jina_reader, tavily
 
     monkeypatch.setenv("TAVILY_API_KEY", "k")
 
@@ -509,6 +560,7 @@ def test_tavily_extract_and_jina_bad_url(monkeypatch):
     _install_httpx(monkeypatch, handler)
     ctx = RunContext(
         {
+            "mode": "extract",
             "url": "{{website}}",
             "api_key_env": "TAVILY_API_KEY",
             "extract_depth": "basic",
@@ -519,14 +571,14 @@ def test_tavily_extract_and_jina_bad_url(monkeypatch):
         }
     )
     assert (
-        asyncio.run(tavily_extract([new_item({"website": "https://e.com"})], ctx))[0]["json"][
+        asyncio.run(tavily([new_item({"website": "https://e.com"})], ctx))[0]["json"][
             "tavily_content"
         ]
         == "# Hi"
     )
-    assert asyncio.run(tavily_extract([], ctx)) == []
+    assert asyncio.run(tavily([], ctx)) == []
     with pytest.raises(NodeError):
-        asyncio.run(tavily_extract([new_item({"website": "not-a-url"})], ctx))
+        asyncio.run(tavily([new_item({"website": "not-a-url"})], ctx))
     with pytest.raises(NodeError):
         asyncio.run(
             jina_reader(

@@ -7,7 +7,7 @@ import pytest
 from app.contracts import new_item
 from app.engine import RunContext
 from app.errors import NodeError
-from app.nodes.enrichment import _fanout, jina_reader, serpapi_search, tavily_search
+from app.nodes.enrichment import _fanout, jina_reader, serpapi_search, tavily
 from tests.mock_provider import install_mock_provider
 
 
@@ -55,6 +55,7 @@ def test_tavily_search_happy_and_empty(monkeypatch):
     _install_httpx(monkeypatch, handler)
     ctx = RunContext(
         {
+            "mode": "search",
             "api_key_env": "TAVILY_API_KEY",
             "query": "{{ $json.company }} funding",
             "max_results": 2,
@@ -65,9 +66,9 @@ def test_tavily_search_happy_and_empty(monkeypatch):
             "on_error": "fail",
         }
     )
-    out = asyncio.run(tavily_search([new_item({"company": "Acme"})], ctx))
+    out = asyncio.run(tavily([new_item({"company": "Acme"})], ctx))
     assert out[0]["json"]["tavily_results"][0]["title"] == "Acme raised"
-    assert asyncio.run(tavily_search([], ctx)) == []
+    assert asyncio.run(tavily([], ctx)) == []
     assert len(seen) == 1
 
 
@@ -75,6 +76,7 @@ def test_tavily_search_bad_param(monkeypatch):
     monkeypatch.setenv("TAVILY_API_KEY", "test-key")
     ctx = RunContext(
         {
+            "mode": "search",
             "api_key_env": "TAVILY_API_KEY",
             "query": "x",
             "max_results": 99,
@@ -86,7 +88,7 @@ def test_tavily_search_bad_param(monkeypatch):
         }
     )
     with pytest.raises(NodeError):
-        asyncio.run(tavily_search([new_item({})], ctx))
+        asyncio.run(tavily([new_item({})], ctx))
 
 
 def test_serpapi_search_happy_and_empty(monkeypatch):
@@ -200,6 +202,7 @@ def test_tavily_search_pasted_key_without_env(monkeypatch):
     _install_httpx(monkeypatch, handler)
     ctx = RunContext(
         {
+            "mode": "search",
             "api_key_env": "TAVILY_API_KEY",
             "api_key": "paste-tavily-secret",
             "query": "{{ $json.company }} funding",
@@ -211,6 +214,212 @@ def test_tavily_search_pasted_key_without_env(monkeypatch):
             "on_error": "fail",
         }
     )
-    out = asyncio.run(tavily_search([new_item({"company": "Acme"})], ctx))
+    out = asyncio.run(tavily([new_item({"company": "Acme"})], ctx))
     assert out[0]["json"]["tavily_results"][0]["title"] == "Acme raised"
     assert seen[0].headers.get("authorization") == "Bearer paste-tavily-secret"
+
+
+def test_firecrawl_search_happy_and_empty(monkeypatch):
+    from app.nodes.firecrawl import firecrawl
+
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v2/search"
+        body = json.loads(request.content)
+        assert body["query"] == "Acme funding"
+        assert body["limit"] == 3
+        return httpx.Response(
+            200,
+            json={
+                "success": True,
+                "data": {
+                    "web": [
+                        {
+                            "title": "Acme raised",
+                            "url": "https://example.com/a",
+                            "description": "…",
+                        },
+                    ]
+                },
+                "creditsUsed": 1,
+            },
+        )
+
+    _install_httpx(monkeypatch, handler)
+    ctx = RunContext(
+        {
+            "mode": "search",
+            "api_key_env": "FIRECRAWL_API_KEY",
+            "query": "{{company}} funding",
+            "limit": 3,
+            "country": "US",
+            "include_domains": "",
+            "exclude_domains": "",
+            "scrape_markdown": False,
+            "timeout": 60000,
+            "concurrency": 1,
+            "max_output_rows": 10,
+            "on_error": "fail",
+        }
+    )
+    out = asyncio.run(firecrawl([new_item({"company": "Acme"})], ctx))
+    assert out[0]["json"]["firecrawl_results"][0]["title"] == "Acme raised"
+    assert asyncio.run(firecrawl([], ctx)) == []
+
+
+def test_firecrawl_scrape_happy_path(monkeypatch):
+    from app.nodes.firecrawl import firecrawl
+
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v2/scrape"
+        body = json.loads(request.content)
+        assert body["url"] == "https://example.com"
+        assert body["formats"] == ["markdown"]
+        return httpx.Response(
+            200,
+            json={
+                "success": True,
+                "data": {
+                    "markdown": "# Example",
+                    "metadata": {"title": "Example Domain"},
+                },
+                "creditsUsed": 1,
+            },
+        )
+
+    _install_httpx(monkeypatch, handler)
+    ctx = RunContext(
+        {
+            "mode": "scrape",
+            "api_key_env": "FIRECRAWL_API_KEY",
+            "url": "{{website}}",
+            "format": "markdown",
+            "only_main_content": True,
+            "timeout": 60000,
+            "concurrency": 1,
+            "max_output_rows": 10,
+            "on_error": "fail",
+        }
+    )
+    out = asyncio.run(firecrawl([new_item({"website": "https://example.com"})], ctx))
+    assert out[0]["json"]["firecrawl_content"] == "# Example"
+    assert out[0]["json"]["firecrawl_title"] == "Example Domain"
+
+
+def test_firecrawl_map_happy_path(monkeypatch):
+    from app.nodes.firecrawl import firecrawl
+
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v2/map"
+        return httpx.Response(
+            200,
+            json={
+                "success": True,
+                "links": [
+                    {"url": "https://example.com/", "title": "Home", "description": "…"},
+                    {"url": "https://example.com/about"},
+                ],
+            },
+        )
+
+    _install_httpx(monkeypatch, handler)
+    ctx = RunContext(
+        {
+            "mode": "map",
+            "api_key_env": "FIRECRAWL_API_KEY",
+            "url": "{{website}}",
+            "limit": 10,
+            "search_query": "",
+            "sitemap": "include",
+            "include_subdomains": True,
+            "ignore_query_parameters": True,
+            "timeout": 60000,
+            "concurrency": 1,
+            "max_output_rows": 10,
+            "on_error": "fail",
+        }
+    )
+    out = asyncio.run(firecrawl([new_item({"website": "https://example.com"})], ctx))
+    assert out[0]["json"]["firecrawl_map_count"] == 2
+    assert out[0]["json"]["firecrawl_map"][0]["url"] == "https://example.com/"
+
+
+def test_firecrawl_bad_param(monkeypatch):
+    from app.nodes.firecrawl import firecrawl
+
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
+    with pytest.raises(NodeError):
+        asyncio.run(
+            firecrawl(
+                [new_item({"website": "https://example.com"})],
+                RunContext(
+                    {
+                        "mode": "search",
+                        "api_key_env": "FIRECRAWL_API_KEY",
+                        "query": "x",
+                        "limit": 101,
+                        "timeout": 60000,
+                        "concurrency": 1,
+                        "max_output_rows": 10,
+                        "on_error": "fail",
+                    }
+                ),
+            )
+        )
+
+
+def test_serpapi_news_results_fallback(monkeypatch):
+    from app.nodes.enrichment import _serp_rows
+
+    payload = {
+        "news_results": [
+            {"title": "Big funding", "link": "https://example.com/news/1", "snippet": "…"},
+        ]
+    }
+    rows = _serp_rows(payload, 5)
+    assert rows[0]["title"] == "Big funding"
+    assert rows[0]["url"] == "https://example.com/news/1"
+    assert rows[0]["content"] == "…"
+
+
+def test_serpapi_play_and_jobs_shapes():
+    from app.nodes.enrichment import _serp_rows
+
+    play_payload = {
+        "organic_results": [
+            {
+                "items": [
+                    {
+                        "title": "Extreme Car Driving Simulator",
+                        "link": "https://play.google.com/store/apps/details?id=com.aim.racing",
+                        "description": "Racing sim.",
+                        "rating": 4.3,
+                    }
+                ]
+            }
+        ]
+    }
+    rows = _serp_rows(play_payload, 5, "google_play")
+    assert rows[0]["title"] == "Extreme Car Driving Simulator"
+    assert rows[0]["url"].startswith("https://play.google.com")
+
+    jobs_payload = {
+        "jobs_results": [
+            {
+                "title": "Barista",
+                "company_name": "Starbucks",
+                "location": "Austin, TX",
+                "via": "Indeed",
+                "apply_options": [{"title": "Indeed", "link": "https://indeed.com/viewjob?jk=1"}],
+            }
+        ]
+    }
+    rows = _serp_rows(jobs_payload, 5, "google_jobs")
+    assert rows[0]["title"] == "Barista"
+    assert rows[0]["url"] == "https://indeed.com/viewjob?jk=1"
+    assert "Starbucks" in rows[0]["content"]

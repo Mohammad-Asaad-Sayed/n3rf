@@ -41,7 +41,7 @@ async def _exercise_api():
     ) as client:
         catalog = await client.get("/nodes")
         assert catalog.status_code == 200
-        assert len(catalog.json()) == 30
+        assert len(catalog.json()) == 30  # firecrawl added (Nov 2026)
 
         response = await client.post(
             "/run",
