@@ -1,0 +1,223 @@
+import { useEffect } from "react";
+import { ArrowUpRight, Sparkles, Users, Wrench, MessageSquare, ShieldCheck } from "lucide-react";
+import "./styles/landing.css";
+import { SiteNav } from "./SiteNav";
+
+const ethos = [
+  "A lot of GTM work is done by a team of one. You shouldn't have to figure it out alone.",
+  "Bring real problems. Leave with useful answers — or a better question.",
+  "Show the system, not the pitch: prompts, automations, costs, and decisions.",
+  "Give more than you take. Credit where ideas came from.",
+];
+
+const who = [
+  {
+    icon: Wrench,
+    title: "People building GTM tools",
+    desc: "You write nodes, integrations, scrapers, or workflows in the GTM space. Bring the half-finished thing — that's often the most interesting one.",
+  },
+  {
+    icon: Sparkles,
+    title: "People bending OSS tools",
+    desc: "You took n8n, PostHog, OpenBot, n3rf, or something else and used it in a way nobody expected. We want to see it.",
+  },
+  {
+    icon: Users,
+    title: "Operators running the stack",
+    desc: "RevOps, growth, and marketing folks using these tools every day. You know what breaks, what's expensive, and what actually ships.",
+  },
+  {
+    icon: MessageSquare,
+    title: "People on the receiving end",
+    desc: "If GTM pipelines reach you, your perspective matters. Good feedback from the audience side is rare and valuable.",
+  },
+];
+
+const topics = [
+  "Workflows and prompts that held up — and the ones that fell apart, and why.",
+  "Cost, concurrency, row counts, and tracing where the output went wrong.",
+  "Choosing a model or provider: what you used, what it cost, and what you'd change.",
+  "New uses for open-source GTM tools — n8n, PostHog, OpenBot, n3rf, or anything with an API.",
+  "Pune meetups, office hours, and chances to build alongside other people.",
+];
+
+const rituals = [
+  { n: "01", title: "Build and share", desc: "Bring a workflow, a dataset, or a question. Build for a focused block, then show what you made and what you learned. Something that works, or something that broke in a useful way." },
+  { n: "02", title: "Show your work", desc: "Walk through the real thing: the prompt, the node chain, the cost per row, and where it failed. The messy truth is the useful part." },
+  { n: "03", title: "Themed build sessions", desc: "Everyone works in one shared area — lead enrichment, row debugging, search + AI pipelines, cost tuning — so people can compare approaches and help each other." },
+  { n: "04", title: "Guided walkthroughs", desc: "One person shows how they built something (n8n flow, n3rf pipeline, PostHog setup), then others try the same ideas on their own problem." },
+  { n: "05", title: "Peer circles", desc: "A small group, 8–12 people. Share wins, challenges, and a case to work through together. No pitches, no slides." },
+  { n: "06", title: "Online and async", desc: "For people who can't make it in person. Share progress, ask questions, and get feedback in chat between sessions." },
+];
+
+const rules = [
+  "Give more than you take.",
+  "Be kind. Critique ideas, not people.",
+  "No cold pitching, recruitment spam, or unsolicited DMs for leads.",
+  "No ads or disguised promotion. Share what you learned, not what you're selling.",
+  "Keep career talk in its own thread so the main space stays useful.",
+  "Protect people's privacy. Don't scrape, export, or message the member list.",
+  "Share work generously, and credit the people and projects behind it.",
+  "Skip politics and religion. We're here to build and learn.",
+  "Follow the project's Code of Conduct (in the repo).",
+];
+
+const faqs = [
+  { q: "When does it open?", a: "Soon. This page will be updated when the group is ready to join." },
+  { q: "Is it only for n3rf users?", a: "No. Any open-source GTM tool belongs here — n3rf, n8n, PostHog, OpenBot, or something you built yourself." },
+  { q: "Do I need to be technical?", a: "No. If you run GTM workflows, depend on them, or are affected by them, you have something useful to contribute." },
+  { q: "Is it only for people in Pune?", a: "The focus is Pune — local meetups and a local group — but online and async participation will be part of it too." },
+  { q: "Can I share my workflow?", a: "Please do. Share the prompt, the steps, the cost, and what broke. Redact anything sensitive before you post it." },
+  { q: "What will meetups look like?", a: "Small and practical. Bring a laptop and a question. Expect 15–20 people at first, working sessions over talks, and time to show what you made." },
+  { q: "Is there a code of conduct?", a: "Yes. The full rules and participation guide will live in COMMUNITY.md in the repo." },
+];
+
+export function CommunityPage() {
+  useEffect(() => {
+    const elements = document.querySelectorAll<HTMLElement>("[data-reveal]");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      elements.forEach((el) => el.setAttribute("data-revealed", "true"));
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute("data-revealed", "true");
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <main className="landing-shell templates-shell community-shell">
+      <SiteNav active="community" />
+
+      <header className="community-hero">
+        <div className="community-hero-frame">
+          <span className="templates-bracket templates-bracket-tl" aria-hidden="true" />
+          <span className="templates-bracket templates-bracket-tr" aria-hidden="true" />
+          <span className="templates-bracket templates-bracket-bl" aria-hidden="true" />
+          <span className="templates-bracket templates-bracket-br" aria-hidden="true" />
+          <p className="landing-kicker templates-kicker">COMMUNITY · PUNE · COMING SOON</p>
+          <h1>Experimenting with GTM-Tech on the open stack, <em>together.</em></h1>
+          <p className="templates-hero-sub">
+            Make open-source GTM tools do useful things. For folks testing tools, workflows, and dev marketing ideas on the open stack. A Pune space for builders, operators, and the people their work reaches — n3rf, n8n, PostHog, OpenBot, and whatever comes next. No pitches, no posturing.
+          </p>
+          <div className="community-coming-soon-badge" aria-label="Status">
+            <span className="community-pulse" /> COMING SOON
+          </div>
+        </div>
+        <div className="community-ethos" aria-label="Community ethos">
+          {ethos.map((line, i) => (
+            <p key={i} className="community-ethos-line"><span>{String(i + 1).padStart(2, "0")}</span>{line}</p>
+          ))}
+        </div>
+      </header>
+
+      <div className="landing-content">
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">01 · WHO IT'S FOR</span>
+            <h2>Different roles, one room.</h2>
+            <p>You don't need the same job title to have the same problem. This group is for anyone working with open-source GTM tools — or living with the results.</p>
+          </div>
+          <div className="community-who-grid">
+            {who.map((w) => (
+              <article key={w.title} className="community-card">
+                <div className="community-card-head"><w.icon aria-hidden="true" /><span>{w.title.toUpperCase()}</span></div>
+                <p>{w.desc}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">02 · WHAT WE TALK ABOUT</span>
+            <h2>Real problems. Useful answers.</h2>
+            <p>The conversations worth having are the ones you can act on — what worked, what didn't, and what it cost.</p>
+          </div>
+          <ul className="community-topics">
+            {topics.map((t) => <li key={t}>{t}</li>)}
+          </ul>
+        </section>
+
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">03 · HOW WE MEET</span>
+            <h2>Six ways to spend a session.</h2>
+            <p>Most sessions are open build time. Bring a laptop and something you want to try. You leave with something that works, or something that broke in a useful way.</p>
+          </div>
+          <div className="community-rituals">
+            {rituals.map((r) => (
+              <article key={r.n} className="community-ritual">
+                <span className="community-ritual-n">{r.n}</span>
+                <h3>{r.title}</h3>
+                <p>{r.desc}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">04 · HOUSE RULES</span>
+            <h2>A few, kept short.</h2>
+            <p>Enough structure to keep the space useful. Nothing more.</p>
+          </div>
+          <div className="community-rules">
+            <div className="community-rules-head"><ShieldCheck aria-hidden="true" /><span>GIVE MORE THAN YOU TAKE</span></div>
+            <ol>
+              {rules.map((r, i) => <li key={i}>{r}</li>)}
+            </ol>
+          </div>
+        </section>
+
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">05 · FAQ</span>
+            <h2>A few things you might want to know.</h2>
+          </div>
+          <div className="faq-list">
+            {faqs.map((f) => (
+              <details key={f.q} className="faq-item">
+                <summary>{f.q}<ArrowUpRight aria-hidden="true" /></summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section className="community-join" data-reveal>
+          <div>
+            <span className="landing-kicker">06 · JOIN</span>
+            <h2>We're getting it ready.</h2>
+            <p>This community is coming soon. When it opens, this page is where you'll find the way in. Until then, keep building — and bring what you learn when the doors open.</p>
+          </div>
+          <span className="ui-button ui-button-md ui-button-primary community-join-btn" aria-disabled="true">
+            COMING SOON
+          </span>
+        </section>
+
+        <footer className="landing-footer">
+          <div className="landing-footer-main">
+            <a className="landing-footer-brand" href="/" aria-label="n3rf home">n3rf</a>
+            <span>Open-source GTM community · Pune · Coming soon</span>
+            <nav aria-label="Footer">
+              <a href="/">Landing</a>
+              <a href="/templates">Templates</a>
+              <a href="/community">Community</a>
+              <a href="/legal">About · Privacy · Terms · Data</a>
+            </nav>
+          </div>
+          <p className="landing-footer-note">© 2026 n3rf · Built for people who learn by making things.</p>
+        </footer>
+      </div>
+    </main>
+  );
+}

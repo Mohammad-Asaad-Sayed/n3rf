@@ -10,6 +10,7 @@ export default defineConfig({
         legal: "legal/index.html",
         claygent: "alternatives/claygent/index.html",
         templates: "templates/index.html",
+        community: "community/index.html",
       },
     },
   },

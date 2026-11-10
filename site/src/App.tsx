@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { ClaygentAlternativePage } from "./ClaygentAlternativePage";
+import { CommunityPage } from "./CommunityPage";
 import { LandingPage } from "./LandingPage";
 import { LegalPage } from "./LegalPage";
 import { TemplatesPage } from "./TemplatesPage";
@@ -15,6 +16,8 @@ export function App() {
       document.title = "Claygent alternative for row-by-row AI research | n3rf";
     } else if (path === "/templates") {
       document.title = "Templates | n3rf";
+    } else if (path === "/community") {
+      document.title = "Community | n3rf";
     } else {
       document.title = "AI data workflows for messy rows | n3rf";
     }
@@ -23,5 +26,6 @@ export function App() {
   if (path === "/legal") return <LegalPage />;
   if (path === "/alternatives/claygent") return <ClaygentAlternativePage />;
   if (path === "/templates") return <TemplatesPage />;
+  if (path === "/community") return <CommunityPage />;
   return <LandingPage />;
 }
