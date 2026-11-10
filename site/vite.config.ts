@@ -9,6 +9,7 @@ export default defineConfig({
         main: "index.html",
         legal: "legal/index.html",
         claygent: "alternatives/claygent/index.html",
+        templates: "templates/index.html",
       },
     },
   },

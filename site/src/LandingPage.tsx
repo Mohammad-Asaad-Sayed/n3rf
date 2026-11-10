@@ -23,11 +23,11 @@ import {
 } from "lucide-react";
 import {
   useEffect,
-  useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Button } from "./components/ui/button";
 import { SELF_HOSTING_URL } from "./links";
+import { SiteNav } from "./SiteNav";
 import "./styles/landing.css";
 
 const enrichedCompanies = [
@@ -142,17 +142,22 @@ const faqs = [
 ];
 
 export function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
   useEffect(() => {
     const onScroll = () => {
-      setScrolled(window.scrollY > 24);
       const hero = document.querySelector<HTMLElement>(".landing-hero-frame");
       if (hero) hero.style.setProperty("--hero-shift", String(Math.min(window.scrollY, 600)));
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (id) {
+      const el = document.getElementById(id);
+      el?.scrollIntoView({ block: "start" });
+    }
   }, []);
 
   useEffect(() => {
@@ -221,19 +226,7 @@ export function LandingPage() {
 
   return (
     <main className="landing-shell">
-      <header className={`landing-nav${scrolled ? " is-scrolled" : ""}`}>
-        <button className="landing-audience" type="button" onClick={() => goTo("landing-hero")}>
-          <Workflow /> <span>FOR: OPS ANALYSTS WITH MESSY SHEETS</span>
-        </button>
-        <nav aria-label="Marketing site">
-          <button type="button" onClick={() => goTo("landing-what")}>Examples</button>
-          <button type="button" onClick={() => goTo("landing-how")}>How it works</button>
-          <button type="button" onClick={() => goTo("landing-pricing")}>Costing</button>
-          <button type="button" onClick={() => goTo("landing-why")}>Why n3rf</button>
-          <button type="button" onClick={() => goTo("landing-faq")}>FAQ</button>
-        </nav>
-        <a className="ui-button ui-button-md ui-button-primary" href={SELF_HOSTING_URL}><Upload /> Self-host n3rf <ArrowUpRight /></a>
-      </header>
+      <SiteNav active="landing" onNavigate={goTo} />
 
       <section className="landing-hero" id="landing-hero">
         <div className="landing-hero-inner">
@@ -260,6 +253,7 @@ export function LandingPage() {
                   >
                     <Upload /> Get started
                   </a>
+                  <Button variant="ghost" onClick={() => { window.location.href = "/templates"; }}>Browse templates <ArrowUpRight aria-hidden="true" /></Button>
                   <Button variant="ghost" onClick={() => goTo("landing-how")}>How it works <ArrowDown /></Button>
                   <p className="landing-sample-note">No account needed · CSV, TSV, or .xlsx up to 10 MB. <button type="button" onClick={() => goTo("landing-artifact")}>Preview an example ↓</button></p>
                 </div>
@@ -528,6 +522,7 @@ export function LandingPage() {
             <a className="landing-footer-brand" href="/" aria-label="n3rf home">n3rf</a>
             <span>Self-hosted AI data workflows for structured rows.</span>
             <nav aria-label="Footer">
+              <a href="/templates">Templates</a>
               <a href="/legal">About · Privacy · Terms · Data</a>
               <a href={SELF_HOSTING_URL}>Self-hosting guide <ArrowUpRight aria-hidden="true" /></a>
             </nav>

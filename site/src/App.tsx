@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ClaygentAlternativePage } from "./ClaygentAlternativePage";
 import { LandingPage } from "./LandingPage";
 import { LegalPage } from "./LegalPage";
+import { TemplatesPage } from "./TemplatesPage";
 import "./styles/site.css";
 
 export function App() {
@@ -12,6 +13,8 @@ export function App() {
       document.title = "About, privacy, terms, and data | n3rf";
     } else if (path === "/alternatives/claygent") {
       document.title = "Claygent alternative for row-by-row AI research | n3rf";
+    } else if (path === "/templates") {
+      document.title = "Templates | n3rf";
     } else {
       document.title = "AI data workflows for messy rows | n3rf";
     }
@@ -19,5 +22,6 @@ export function App() {
 
   if (path === "/legal") return <LegalPage />;
   if (path === "/alternatives/claygent") return <ClaygentAlternativePage />;
+  if (path === "/templates") return <TemplatesPage />;
   return <LandingPage />;
 }
