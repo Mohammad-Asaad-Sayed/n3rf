@@ -242,11 +242,18 @@ export function isVisible(param: ParamSpec, values: Record<string, unknown>) {
   return !param.show_if || param.show_if.in.includes(values[param.show_if.param]);
 }
 
-/** Params worth previewing on the canvas card: required/expression first, stable order. */
-export function summaryParams(params: ParamSpec[], limit = 2): ParamSpec[] {
+/** Params worth previewing on the canvas card: required/expression first, stable order.
+ *  Params hidden by show_if for the current mode are not shown. */
+export function summaryParams(
+  params: ParamSpec[],
+  values: Record<string, unknown> = {},
+  limit = 2,
+): ParamSpec[] {
   const rank = (param: ParamSpec) =>
     (param.required ? 0 : 2) + (param.expression ? 0 : 1);
-  return [...params].sort((a, b) => rank(a) - rank(b)).slice(0, limit);
+  return [...params.filter((param) => isVisible(param, values))]
+    .sort((a, b) => rank(a) - rank(b))
+    .slice(0, limit);
 }
 
 /** Tuning knobs that rarely change — collapsed under Advanced in the inspector. */
@@ -268,6 +275,36 @@ export const advancedParamKeys = new Set([
   "format",
   "keep_empty",
   "numeric",
+  // Tavily Map tuning & filter knobs (hidden for novices; safe conservative defaults)
+  "max_depth",
+  "max_breadth",
+  // ("limit" stays visible — it is the main credit-control knob)
+  "select_paths",
+  "select_domains",
+  "exclude_paths",
+  "exclude_domains",
+  "allow_external",
+  // Firecrawl tuning & filter knobs
+  "country",
+  "include_domains",
+  "exclude_domains",
+  "scrape_markdown",
+  "format",
+  "only_main_content",
+  "search_query",
+  "sitemap",
+  "include_subdomains",
+  "ignore_query_parameters",
+  // Search-node pro controls
+  "gl",
+  "hl",
+  "location",
+  "topic",
+  "time_range",
+  "include_domains",
+  "exclude_domains",
+  "category",
+  "mobile",
 ]);
 
 export function partitionParams(params: ParamSpec[]): { core: ParamSpec[]; advanced: ParamSpec[] } {

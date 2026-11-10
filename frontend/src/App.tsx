@@ -420,6 +420,128 @@ function HomePage({
   );
 }
 
+// Read-only reference catalog of common providers and chat models, with rough
+// cost-per-1k-rows figures. Facts (model ids, list prices, context windows) were
+// re-verified against each provider's official docs on Nov 10, 2026; token prices
+// drift, so always verify before a large run. Per-1k figures assume a ~250-token
+// prompt, four output columns and web search enabled, and are only computed for
+// models whose price did not change since the estimates were built; a dash means
+// the figure is not known. Gemini 3.5 Flash is no longer listed by Google and was
+// removed; several models marked "legacy" are superseded by newer releases but kept
+// for reproducibility.
+type CatalogModel = {
+  id: string;
+  name: string;
+  note: string;
+  inputPer1M: number;
+  outputPer1M: number;
+  context: string;
+  per1kRows: number | null; // null = not known for current pricing
+};
+type CatalogProvider = {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  keyLabel: string;
+  keyUrl: string;
+  baseUrl: string;
+  apiKeyEnv: string;
+  searchNote: string;
+  models: CatalogModel[];
+};
+
+const MODEL_CATALOG: CatalogProvider[] = [
+  {
+    id: "google",
+    name: "Google Gemini",
+    keyPrefix: "AIza",
+    keyLabel: "Google AI Studio",
+    keyUrl: "https://aistudio.google.com/apikey",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+    apiKeyEnv: "GEMINI_API_KEY",
+    searchNote:
+      "Gemini 3 and newer: 5,000 free search requests per month (shared across 3.x models, default cap 1,500/day), then $14 per 1,000. The 2.5 series gets 1,500 free grounded searches per day, then $35 per 1,000. gemini-3.5-flash no longer appears in Google's pricing and was removed from this list.",
+    models: [
+      { id: "gemini-4-argon", name: "Gemini 4 Argon", note: "Flagship reasoning model; $4/$20 from Dec 1, 2026", inputPer1M: 2, outputPer1M: 10, context: "1M", per1kRows: null },
+      { id: "gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", note: "Strongest 3.x reasoning; $2/$12 up to 200k ctx, $4/$18 above", inputPer1M: 2, outputPer1M: 12, context: "1M", per1kRows: 2.18 },
+      { id: "gemini-3.8-flash", name: "Gemini 3.8 Flash", note: "Newest Flash; $1.50/$7.50 from Jan 1, 2027", inputPer1M: 0.75, outputPer1M: 3.75, context: "—", per1kRows: null },
+      { id: "gemini-3.6-flash", name: "Gemini 3.6 Flash", note: "Previous Flash; intro rate $0.75/$3.75, then $1.50/$7.50 from Jan 2027", inputPer1M: 0.75, outputPer1M: 3.75, context: "1M", per1kRows: null },
+      { id: "gemini-3-flash-preview", name: "Gemini 3 Flash", note: "Strong quality at a fraction of flagship cost", inputPer1M: 0.5, outputPer1M: 3, context: "1M", per1kRows: 0.55 },
+      { id: "gemini-3.5-flash-lite", name: "Gemini 3.5 Flash-Lite", note: "Stable low-cost tier when you want GA", inputPer1M: 0.3, outputPer1M: 2.5, context: "1M", per1kRows: 0.43 },
+      { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite", note: "Lowest cost per row of any Gemini model", inputPer1M: 0.25, outputPer1M: 1.5, context: "1M", per1kRows: 0.27 },
+      { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", note: "Legacy; $1.25/$10 up to 200k ctx, $2.50/$15 above", inputPer1M: 1.25, outputPer1M: 10, context: "1M", per1kRows: 1.71 },
+      { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", note: "Legacy; reproducing an earlier 2.5-era run", inputPer1M: 0.3, outputPer1M: 2.5, context: "1M", per1kRows: 0.43 },
+      { id: "gemini-2.5-flash-lite", name: "Gemini 2.5 Flash-Lite", note: "Legacy budget; cheapest tokens, search billed at 2.5-series rate", inputPer1M: 0.1, outputPer1M: 0.4, context: "1M", per1kRows: 0.08 },
+    ],
+  },
+  {
+    id: "openai",
+    name: "OpenAI GPT",
+    keyPrefix: "sk-",
+    keyLabel: "OpenAI Platform",
+    keyUrl: "https://platform.openai.com/api-keys",
+    baseUrl: "https://api.openai.com/v1",
+    apiKeyEnv: "OPENAI_API_KEY",
+    searchNote:
+      "$10 per 1,000 web-search calls, plus search-content tokens billed at the model's own rates (the fixed ~8,000-token block applies only to gpt-4o-mini / gpt-4.1-mini). On a short enrichment prompt that search content dominates the cost, not the prompt.",
+    models: [
+      { id: "gpt-6-astra", name: "GPT-6 Astra", note: "New flagship (Sep 2026); $10/1M in, $50/1M out", inputPer1M: 10, outputPer1M: 50, context: "1.05M", per1kRows: null },
+      { id: "gpt-5.6-sol", name: "GPT-5.6 Sol", note: "Hardest research questions; promo $4/$20 through Nov 30, 2026 (then $5/$30) — test first", inputPer1M: 4, outputPer1M: 20, context: "1.05M", per1kRows: null },
+      { id: "gpt-5.6-terra", name: "GPT-5.6 Terra", note: "Strong reasoning where answers need judgement", inputPer1M: 2, outputPer1M: 12, context: "1.05M", per1kRows: 28.18 },
+      { id: "gpt-5.6-luna", name: "GPT-5.6 Luna", note: "Cheapest sensible OpenAI default", inputPer1M: 0.2, outputPer1M: 1.2, context: "1.05M", per1kRows: 11.82 },
+      { id: "gpt-6.1-sol", name: "GPT-6.1 Sol", note: "GPT-6.1 reasoning line (Sep 2026)", inputPer1M: 2, outputPer1M: 10, context: "—", per1kRows: null },
+      { id: "gpt-5.4", name: "GPT-5.4", note: "Pin to reproduce a run already validated on 5.4", inputPer1M: 2.5, outputPer1M: 15, context: "1.05M", per1kRows: 32.73 },
+      { id: "gpt-5.4-mini", name: "GPT-5.4 Mini", note: "A step up from the mini tier for careful answers", inputPer1M: 0.75, outputPer1M: 4.5, context: "400k", per1kRows: 16.82 },
+      { id: "gpt-5.1", name: "GPT-5.1", note: "Deprecated by OpenAI — kept for reproducibility", inputPer1M: 1.25, outputPer1M: 10, context: "400k", per1kRows: 21.71 },
+      { id: "gpt-5", name: "GPT-5", note: "Deprecated by OpenAI — kept for reproducibility", inputPer1M: 1.25, outputPer1M: 10, context: "400k", per1kRows: 21.71 },
+      { id: "gpt-5-mini", name: "GPT-5 Mini", note: "Deprecated by OpenAI — legacy workhorse", inputPer1M: 0.25, outputPer1M: 2, context: "400k", per1kRows: 12.34 },
+      { id: "gpt-5-nano", name: "GPT-5 Nano", note: "Deprecated by OpenAI — weakest at open-web research", inputPer1M: 0.05, outputPer1M: 0.4, context: "400k", per1kRows: 10.47 },
+    ],
+  },
+  {
+    id: "anthropic",
+    name: "Anthropic Claude",
+    keyPrefix: "sk-ant-",
+    keyLabel: "Claude Console",
+    keyUrl: "https://platform.claude.com/settings/keys",
+    baseUrl: "https://api.anthropic.com/v1/",
+    apiKeyEnv: "ANTHROPIC_API_KEY",
+    searchNote:
+      "$10 per 1,000 searches, no free allowance, plus a few hundred tokens of per-request tool overhead (model-dependent, roughly 290–590 tokens). The OpenAI-compatible endpoint at api.anthropic.com/v1/ is a convenience layer intended for testing, not long-term production use. Keys are created at platform.claude.com.",
+    models: [
+      { id: "claude-fable-5-2", name: "Claude Fable 5.2", note: "New top tier (Nov 2026); adaptive thinking always on", inputPer1M: 8, outputPer1M: 40, context: "1M", per1kRows: null },
+      { id: "claude-opus-5-5", name: "Claude Opus 5.5", note: "Current Opus (Sep 2026)", inputPer1M: 4, outputPer1M: 20, context: "1M", per1kRows: null },
+      { id: "claude-sonnet-5-5", name: "Claude Sonnet 5.5", note: "Current Sonnet (Sep 2026)", inputPer1M: 2, outputPer1M: 10, context: "1M", per1kRows: null },
+      { id: "claude-haiku-5-5", name: "Claude Haiku 5.5", note: "Current Haiku (Oct 2026); >100k-token prompts bill $0.50/$2.50", inputPer1M: 0.1, outputPer1M: 0.5, context: "1M", per1kRows: null },
+      { id: "claude-opus-5", name: "Claude Opus 5", note: "Legacy (Jul 2026) — current is Opus 5.5", inputPer1M: 5, outputPer1M: 25, context: "1M", per1kRows: 16.48 },
+      { id: "claude-opus-4-8", name: "Claude Opus 4.8", note: "Legacy — pin for runs already validated on Opus 4.8", inputPer1M: 5, outputPer1M: 25, context: "1M", per1kRows: 16.48 },
+      { id: "claude-sonnet-5", name: "Claude Sonnet 5", note: "Legacy (Jun 2026) — current is Sonnet 5.5; $2/$10 confirmed", inputPer1M: 2, outputPer1M: 10, context: "1M", per1kRows: 12.59 },
+      { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", note: "Legacy — 1M context at full price", inputPer1M: 3, outputPer1M: 15, context: "1M", per1kRows: 13.89 },
+      { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", note: "Legacy — 200k context", inputPer1M: 1, outputPer1M: 5, context: "200k", per1kRows: 11.3 },
+    ],
+  },
+  {
+    id: "xai",
+    name: "xAI Grok",
+    keyPrefix: "xai-",
+    keyLabel: "xAI Console",
+    keyUrl: "https://console.x.ai",
+    baseUrl: "https://api.x.ai/v1",
+    apiKeyEnv: "XAI_API_KEY",
+    searchNote:
+      "$5 per 1,000 web searches — an official published rate, not an estimate (X search is billed per fetched item: $5/1k posts, $10/1k profiles). Requests of 200k+ prompt tokens bill all tokens at double rate. Chat Completions is OpenAI-compatible; the Responses API is xAI's preferred API.",
+    models: [
+      { id: "grok-4.7", name: "Grok 4.7", note: "xAI's recommended flagship (Sep 2026)", inputPer1M: 2, outputPer1M: 6, context: "500k", per1kRows: null },
+      { id: "grok-4.6", name: "Grok 4.6", note: "Previous frontier model (Aug 2026)", inputPer1M: 2, outputPer1M: 6, context: "500k", per1kRows: null },
+      { id: "grok-4.5", name: "Grok 4.5", note: "Uses server-side web/X search tools, billed $5/1k calls", inputPer1M: 2, outputPer1M: 6, context: "500k", per1kRows: 6.34 },
+      { id: "grok-4.3", name: "Grok 4.3", note: "Very low output token cost; good for verbose outputs", inputPer1M: 1.25, outputPer1M: 2.5, context: "1M", per1kRows: 5.66 },
+      { id: "grok-4.20-0309-reasoning", name: "Grok 4.20 (reasoning)", note: "Same price as fast, with step-by-step inference", inputPer1M: 1.25, outputPer1M: 2.5, context: "1M", per1kRows: 5.66 },
+      { id: "grok-4.20-0309-non-reasoning", name: "Grok 4.20 (fast)", note: "Skips reasoning for lower latency on simple lookups", inputPer1M: 1.25, outputPer1M: 2.5, context: "1M", per1kRows: 5.66 },
+      { id: "grok-build-0.1", name: "Grok Build 0.1", note: "Cheapest xAI option; smaller context window", inputPer1M: 1, outputPer1M: 2, context: "256k", per1kRows: 5.53 },
+    ],
+  },
+];
+
 function ModelSettingsPage() {
   const [profiles, setProfiles] = useState<ModelProfile[]>([]);
   const [profileId, setProfileId] = useState("");
@@ -435,6 +557,7 @@ function ModelSettingsPage() {
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -525,6 +648,18 @@ function ModelSettingsPage() {
     }
   }
 
+  function loadCatalogModel(provider: CatalogProvider, model: CatalogModel) {
+    setProfileId("");
+    setName(provider.name);
+    setBaseUrl(provider.baseUrl);
+    setModel(model.id);
+    setApiKeyEnv(provider.apiKeyEnv);
+    setApiKey("");
+    setMessage(`Loaded ${model.name} into the form — test the connection, then save.`);
+    setError("");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function deleteProfile() {
     if (!profileId) return;
     try {
@@ -560,7 +695,7 @@ function ModelSettingsPage() {
               </button>
             )) : <p className="profile-empty">No saved providers yet.</p>}
           </aside>
-          <form className="profile-form" onSubmit={(event) => void saveProfile(event)}>
+          <form ref={formRef} className="profile-form" onSubmit={(event) => void saveProfile(event)}>
             <div className="profile-form-heading"><span className="profile-form-icon"><Settings2 /></span><div><span className="home-eyebrow">OPENAI-COMPATIBLE</span><h2>{profileId ? "Edit provider" : "Configure a provider"}</h2></div></div>
             <div className="profile-fields">
               <label className="form-field"><span className="field-label">Profile name</span><Input required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} placeholder="My local model" /></label>
@@ -579,6 +714,54 @@ function ModelSettingsPage() {
             <div className="profile-security"><span className="security-mark">✓</span><span><strong>Secret-safe by design</strong><small>Only the environment variable name is saved in SQLite. Connection tests call the provider’s models endpoint and do not send a prompt. Pasted test keys are sent once and never saved.</small></span></div>
           </form>
         </div>
+        <section className="model-catalog" aria-labelledby="model-catalog-heading">
+          <div className="catalog-heading">
+            <span className="home-eyebrow"><span /> MODEL CATALOG &amp; ROUGH COST</span>
+            <h2 id="model-catalog-heading">Pick a model before you <em>save a profile.</em></h2>
+            <p>Common providers and chat models, most capable first, listed with what roughly 1,000 enriched rows cost once search fees are folded in. Assumes a ~250-token prompt and four output columns with web search on. Prices and model ids were re-verified against each provider's official docs on Nov 10, 2026; a dash means a per-1k figure is not known for the current price. Prices will drift — verify before a large run. n3rf never sees this traffic; you pay the provider directly.</p>
+          </div>
+          {MODEL_CATALOG.map((provider, providerIndex) => {
+            const cheapest = Math.min(...provider.models.map((item) => item.per1kRows ?? Number.POSITIVE_INFINITY));
+            return (
+              <details className="catalog-provider" key={provider.id} open={providerIndex === 0}>
+                <summary className="catalog-summary">
+                  <span className="catalog-provider-mark"><Database /></span>
+                  <span className="catalog-summary-text">
+                    <strong>{provider.name}</strong>
+                    <small>{provider.models.length} models · keys start with <code>{provider.keyPrefix}</code></small>
+                  </span>
+                  <span className="catalog-from">from <strong>${cheapest.toFixed(2)}</strong> / 1k rows</span>
+                  <ChevronDown className="catalog-chevron" aria-hidden="true" />
+                </summary>
+                <div className="catalog-body">
+                  <p className="catalog-search-note">{provider.searchNote}</p>
+                  <p className="catalog-key-link">No key yet? <a href={provider.keyUrl} target="_blank" rel="noreferrer">Get one at {provider.keyLabel}<ArrowUpRight aria-hidden="true" /></a> Keys start with <code>{provider.keyPrefix}</code>.</p>
+                  <div className="catalog-table-wrap">
+                    <table className="catalog-table">
+                      <thead>
+                        <tr><th scope="col">Model</th><th scope="col">In / Out per 1M</th><th scope="col">Context</th><th scope="col">≈ per 1k rows</th><th scope="col"><span className="sr-only">Action</span></th></tr>
+                      </thead>
+                      <tbody>
+                        {provider.models.map((model) => (
+                          <tr key={model.id}>
+                            <td>
+                              <strong>{model.name}</strong>
+                              <small><code>{model.id}</code> — {model.note}</small>
+                            </td>
+                            <td className="catalog-num">${model.inputPer1M} / ${model.outputPer1M}</td>
+                            <td className="catalog-num">{model.context}</td>
+                            <td className="catalog-num">{model.per1kRows === null ? "—" : `$${model.per1kRows.toFixed(2)}`}</td>
+                            <td><button type="button" className="catalog-use" onClick={() => loadCatalogModel(provider, model)}>Use<ArrowRight aria-hidden="true" /></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </details>
+            );
+          })}
+        </section>
       </div>
     </main>
   );
@@ -727,6 +910,15 @@ function AppPage() {
 
 // Ephemeral BYOK: a pasted api_key is per-request only. It lives in React
 // state (sent with /run) but must never reach localStorage or the save API.
+function normalizeNodePositions(nodes: WorkflowNode[] | undefined): WorkflowNode[] {
+  // Workflows written by external tools (or older schemas) may omit canvas
+  // positions. Never trust the shape — fall back to a left-to-right grid.
+  return (nodes ?? []).map((node, index) => ({
+    ...node,
+    position: node.position ?? { x: 120 + (index % 3) * 320, y: 140 + Math.floor(index / 3) * 190 },
+  }));
+}
+
 function stripEphemeralKeys(nodes: WorkflowNode[]): WorkflowNode[] {
   return nodes.map((node) => {
     if (!node.params || !("api_key" in node.params)) return node;
@@ -823,6 +1015,7 @@ function WorkflowEditor({
   const [result, setResult] = useState<RunResult | null>(null);
   const [runningNodeId, setRunningNodeId] = useState<string | null>(null);
   const [resultTab, setResultTab] = useState<"output" | "steps" | "diagnostics">("output");
+  const [pendingExport, setPendingExport] = useState<{ rows: unknown[]; nested: string[] } | null>(null);
   const [outputNotice, setOutputNotice] = useState("");
   const [apiConnected, setApiConnected] = useState(true);
   const [workflowName, setWorkflowName] = useState("Untitled workflow");
@@ -1013,6 +1206,94 @@ function WorkflowEditor({
     return rows;
   }, [gridRows, gridEmptyColumn, gridFirstN]);
 
+  const outputParseSuggestion = useMemo(() => {
+    // After a run, look at the selected node's output for the first field that
+    // is a list of plain objects (e.g. tavily_results). That is the one case
+    // n3rf can flatten for you — offer it.
+    const first = selectedRunNode?.sample?.find(
+      (row): row is Record<string, unknown> =>
+        row !== null && typeof row === "object" && !Array.isArray(row),
+    );
+    if (!first) return null;
+    for (const [field, value] of Object.entries(first)) {
+      if (!Array.isArray(value) || value.length === 0) continue;
+      const objects = value.filter(
+        (item): item is Record<string, unknown> =>
+          item !== null && typeof item === "object" && !Array.isArray(item),
+      );
+      if (objects.length === 0) continue;
+      const keys = Object.keys(objects[0])
+        .filter((key) => {
+          const v = objects[0][key];
+          return v === null || v === undefined || typeof v !== "object";
+        })
+        .slice(0, 6);
+      if (keys.length >= 2) return { field, count: value.length, keys };
+    }
+    return null;
+  }, [selectedRunNode]);
+
+  function parseIntoColumns(mode: "top" | "expand") {
+    const suggestion = outputParseSuggestion;
+    if (!suggestion || !selected) return;
+    const downstream = edges.filter((edge) => edge.source === selected.id);
+    const baseX = selected.position.x + 320;
+    const historyEntry = snapshot(nodes, edges);
+    setPast((current) => [...current.slice(-99), historyEntry]);
+    setFuture([]);
+    if (mode === "top") {
+      // Case A: one answer per row — lift scalar fields of the first result
+      // into the same row as new columns (top_title, top_url, ...).
+      const id = `set_fields_${crypto.randomUUID().slice(0, 8)}`;
+      const params = {
+        fields: suggestion.keys.map((key) => ({
+          name: `top_${key}`,
+          value: `{{ ${suggestion.field}[0].${key} }}`,
+        })),
+      };
+      const node: WorkflowNode = { id, type: "set_fields", params, position: { x: baseX, y: selected.position.y } };
+      setNodes((current) => [...current, node]);
+      setEdges((current) => [
+        ...current.filter((edge) => edge.source !== selected.id),
+        { source: selected.id, target: id, target_input: 0 },
+        ...downstream.map((edge) => ({ ...edge, source: id })),
+      ]);
+      setSelectedId(id);
+    } else {
+      // Case B: expand the list, then flatten each result object into columns.
+      const expandId = `expand_arrays_${crypto.randomUUID().slice(0, 8)}`;
+      const flattenId = `set_fields_${crypto.randomUUID().slice(0, 8)}`;
+      const expandNode: WorkflowNode = {
+        id: expandId,
+        type: "expand_arrays",
+        params: { field: suggestion.field },
+        position: { x: baseX, y: selected.position.y },
+      };
+      const flattenNode: WorkflowNode = {
+        id: flattenId,
+        type: "set_fields",
+        params: {
+          fields: suggestion.keys.map((key) => ({
+            name: key,
+            value: `{{ ${suggestion.field}.${key} }}`,
+          })),
+        },
+        position: { x: baseX + 320, y: selected.position.y },
+      };
+      setNodes((current) => [...current, expandNode, flattenNode]);
+      setEdges((current) => [
+        ...current.filter((edge) => edge.source !== selected.id),
+        { source: selected.id, target: expandId, target_input: 0 },
+        { source: expandId, target: flattenId, target_input: 0 },
+        ...downstream.map((edge) => ({ ...edge, source: flattenId })),
+      ]);
+      setSelectedId(flattenId);
+    }
+    setInspectorTab("node");
+    setInspectorOpen(true);
+    setErrorMessage("");
+  }
+
   const executingColumn =
     runningNodeId && programmedByColumn
       ? Object.entries(programmedByColumn).find(([, info]) => info.nodeId === runningNodeId)?.[0] ?? null
@@ -1161,7 +1442,7 @@ function WorkflowEditor({
           if (!active) return;
           setWorkflowId(saved.id);
           setWorkflowName(saved.name);
-          setNodes(saved.nodes);
+          setNodes(normalizeNodePositions(saved.nodes));
           setEdges(saved.edges);
           setSelectedId(saved.nodes[0]?.id ?? null);
         }
@@ -1404,6 +1685,18 @@ function WorkflowEditor({
     }
   }
 
+  function requestExport(rows: unknown[]) {
+    const records = outputRecords(rows);
+    const nested = [...new Set(records.flatMap((row) => Object.keys(row)))].filter((key) =>
+      records.some((row) => row[key] !== null && typeof row[key] === "object"),
+    );
+    if (nested.length === 0) {
+      exportOutputRows(rows);
+      return;
+    }
+    setPendingExport({ rows, nested });
+  }
+
   async function saveWorkflow() {
     try {
       // Defense in depth: never send a pasted key to the save endpoint either —
@@ -1434,7 +1727,7 @@ function WorkflowEditor({
       if (!response.ok) throw new Error(payload.detail || "Workflow could not be loaded.");
       setWorkflowId(payload.id);
       setWorkflowName(payload.name);
-      setNodes(payload.nodes);
+      setNodes(normalizeNodePositions(payload.nodes));
       setEdges(payload.edges);
       setSelectedId(null);
       setResult(null);
@@ -1875,7 +2168,7 @@ function WorkflowEditor({
                       </button>
                     </div>
                     <div className="node-summary">
-                      {spec.params.length ? summaryParams(spec.params).map((param) => (
+                      {spec.params.length ? summaryParams(spec.params, node.params).map((param) => (
                         <span className="node-param" key={param.key}>
                           <small>{plainParamLabel(param)}</small>
                           <strong>{summaryLabel(param, node.params[param.key])}</strong>
@@ -1991,7 +2284,7 @@ function WorkflowEditor({
                             >
                               <Copy /> Copy rows
                             </Button>
-                            <Button size="sm" onClick={() => exportOutputRows(gridRows)}>
+                            <Button size="sm" onClick={() => requestExport(gridRows)}>
                               <Download /> Export CSV
                             </Button>
                           </div>
@@ -2183,11 +2476,13 @@ function WorkflowEditor({
                       {(() => {
                         const visible = columnDraftSpec.params.filter((param) => isVisible(param, columnDraftParams));
                         const { core, advanced } = partitionParams(visible);
+                        const firstExpression = core.findIndex((param) => param.expression);
                         return (
                           <>
-                            {core.map((param) => (
+                            {core.map((param, index) => (
                               <ParamControl
                                 key={param.key}
+                                showFieldStrip={index === firstExpression}
                                 param={param}
                                 value={columnDraftParams[param.key]}
                                 expressionFields={expressionFields} previewRow={expressionPreviewRow}
@@ -2204,6 +2499,7 @@ function WorkflowEditor({
                                   {advanced.map((param) => (
                                     <ParamControl
                                       key={param.key}
+                                      showFieldStrip={false}
                                       param={param}
                                       value={columnDraftParams[param.key]}
                                       expressionFields={expressionFields} previewRow={expressionPreviewRow}
@@ -2299,37 +2595,67 @@ function WorkflowEditor({
                           <small>{rows.length} sample {rows.length === 1 ? "row" : "rows"}</small>
                         </div>
                         {rows.length
-                          ? <pre>{JSON.stringify(rows, null, 2)}</pre>
+                          ? (() => {
+                              const first = JSON.stringify(rows[0] ?? null, null, 2);
+                              const clipped = first.length > 1400;
+                              return (
+                                <>
+                                  <pre className="input-preview-pre">{clipped ? `${first.slice(0, 1400)}…` : first}</pre>
+                                  {(clipped || rows.length > 1) && (
+                                    <small className="input-preview-more">
+                                      {clipped ? "Preview clipped — full row used at run time. " : ""}
+                                      {rows.length - 1 > 0 ? `${rows.length - 1} more ${rows.length - 1 === 1 ? "row" : "rows"} not shown.` : ""}
+                                    </small>
+                                  )}
+                                </>
+                              );
+                            })()
                           : <p>No incoming rows at this input.</p>}
                       </section>
                     );
                   })}
-                  <div className="inspector-section-heading">
-                    <span>Parameters</span><small>{String(selectedSpec.params.length).padStart(2, "0")}</small>
-                  </div>
-                  <div className="inspector-fields">
-                    {(() => {
-                      const visible = selectedSpec.params.filter((param) => isVisible(param, selected.params));
-                      const { core, advanced } = partitionParams(visible);
-                      return (
-                        <>
-                          {core.map((param) => (
-                            <ParamControl key={param.key} param={param} value={selected.params[param.key]} expressionFields={expressionFields} previewRow={expressionPreviewRow} onChange={(value) => updateParam(param.key, value)} onUpload={(event) => void uploadFile(event, param.key)} />
+                  {outputParseSuggestion && (
+                    <div className="parse-output">
+                      <div className="inspector-section-heading">
+                        <span>Parse output</span><small>{String(outputParseSuggestion.count).padStart(2, "0")} RESULTS</small>
+                      </div>
+                      <p className="parse-output-hint">
+                        <code>{outputParseSuggestion.field}</code> holds nested result objects.
+                        Flatten them to columns to filter, sort and export.
+                      </p>
+                      <div className="parse-output-actions">
+                        <Button size="sm" onClick={() => parseIntoColumns("top")}>Top result into columns</Button>
+                        <Button size="sm" variant="ghost" onClick={() => parseIntoColumns("expand")}>One row per result</Button>
+                      </div>
+                    </div>
+                  )}
+                  {(() => {
+                    const visible = selectedSpec.params.filter((param) => isVisible(param, selected.params));
+                    const { core, advanced } = partitionParams(visible);
+                    const firstExpression = core.findIndex((param) => param.expression);
+                    return (
+                      <>
+                        <div className="inspector-section-heading">
+                          <span>Parameters</span><small>{core.length} core · {advanced.length} advanced</small>
+                        </div>
+                        <div className="inspector-fields">
+                          {core.map((param, index) => (
+                            <ParamControl key={param.key} showFieldStrip={index === firstExpression} param={param} value={selected.params[param.key]} expressionFields={expressionFields} previewRow={expressionPreviewRow} onChange={(value) => updateParam(param.key, value)} onUpload={(event) => void uploadFile(event, param.key)} />
                           ))}
                           {advanced.length > 0 && (
                             <details className="advanced-params">
                               <summary>Advanced · {advanced.length} {advanced.length === 1 ? "option" : "options"}</summary>
                               <div className="inspector-fields advanced-fields">
                                 {advanced.map((param) => (
-                                  <ParamControl key={param.key} param={param} value={selected.params[param.key]} expressionFields={expressionFields} previewRow={expressionPreviewRow} onChange={(value) => updateParam(param.key, value)} onUpload={(event) => void uploadFile(event, param.key)} />
+                                  <ParamControl key={param.key} showFieldStrip={false} param={param} value={selected.params[param.key]} expressionFields={expressionFields} previewRow={expressionPreviewRow} onChange={(value) => updateParam(param.key, value)} onUpload={(event) => void uploadFile(event, param.key)} />
                                 ))}
                               </div>
                             </details>
                           )}
-                        </>
-                      );
-                    })()}
-                  </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </>
               ) : (
                 <div className="empty-inspector"><Workflow /><strong>Select a node</strong><span>Choose a node on the canvas to configure its parameters.</span></div>
@@ -2402,6 +2728,33 @@ function WorkflowEditor({
         </dialog>
 
       </main>
+      {pendingExport && (
+        <div className="export-lint-overlay" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) setPendingExport(null); }}>
+          <section className="export-lint" role="dialog" aria-modal="true" aria-labelledby="export-lint-title" aria-describedby="export-lint-description">
+            <span className="home-eyebrow">EXPORT CHECK</span>
+            <h2 id="export-lint-title">Nested columns in this export</h2>
+            <p id="export-lint-description">
+              <code>{pendingExport.nested.join(", ")}</code> hold arrays or objects — they would be copied out as stringified JSON. Drop them, or export them as-is.
+            </p>
+            <div className="export-lint-actions">
+              <Button type="button" variant="ghost" autoFocus onClick={() => setPendingExport(null)}>Cancel</Button>
+              <Button type="button" onClick={() => { exportOutputRows(pendingExport.rows); setPendingExport(null); }}>Export as JSON text</Button>
+              <Button type="button" variant="primary" onClick={() => {
+                const nestedSet = new Set(pendingExport.nested);
+                const clean = outputRecords(pendingExport.rows).map((row) => {
+                  const next: Record<string, unknown> = {};
+                  for (const [key, value] of Object.entries(row)) {
+                    if (!nestedSet.has(key)) next[key] = value;
+                  }
+                  return next;
+                });
+                exportOutputRows(clean);
+                setPendingExport(null);
+              }}>Drop nested, export CSV</Button>
+            </div>
+          </section>
+        </div>
+      )}
     </TooltipProvider>
   );
 }
@@ -2455,6 +2808,7 @@ function ExpressionInput({
   multiline = false,
   paramKey = "",
   previewRow = null,
+  showFieldStrip = true,
 }: {
   id: string;
   ariaLabel?: string;
@@ -2464,6 +2818,7 @@ function ExpressionInput({
   multiline?: boolean;
   paramKey?: string;
   previewRow?: Record<string, unknown> | null;
+  showFieldStrip?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const [trigger, setTrigger] = useState<{ start: number; end: number; query: string } | null>(null);
@@ -2619,8 +2974,9 @@ function ExpressionInput({
       >
         <AtSign />
       </button>
-      <div className="field-chip-strip" aria-label="Your columns — click or drag into the box">
-        <span className="field-chip-title">Your columns — click or drag into the box</span>
+      {showFieldStrip && (
+      <div className="field-chip-strip" aria-label="Your columns — click to insert or drag into the field">
+        <span className="field-chip-title">Your columns · click to insert</span>
         <div className="field-chip-list">
           {fields.map((field) => (
             <button
@@ -2641,6 +2997,7 @@ function ExpressionInput({
           ))}
         </div>
       </div>
+      )}
       {preview && (
         <p className="expression-preview">
           <strong>Will use:</strong> {preview}
@@ -3019,6 +3376,7 @@ function ParamControl({
   previewRow = null,
   onChange,
   onUpload,
+  showFieldStrip = true,
 }: {
   param: ParamSpec;
   value: unknown;
@@ -3026,6 +3384,7 @@ function ParamControl({
   previewRow?: Record<string, unknown> | null;
   onChange: (value: unknown) => void;
   onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  showFieldStrip?: boolean;
 }) {
   const [error, setError] = useState("");
   const [presetChoice, setPresetChoice] = useState("");
@@ -3064,6 +3423,7 @@ function ParamControl({
         multiline={param.type === "textarea"}
         paramKey={param.key}
         previewRow={previewRow}
+        showFieldStrip={showFieldStrip}
       />
     );
   } else if (param.type === "boolean") {
@@ -3262,6 +3622,7 @@ function RowsControl({
                 fields={expressionFields}
                 paramKey={column.key}
                 previewRow={previewRow}
+                showFieldStrip={false}
               />
             ) : column.key === "from" || column.key === "field" ? (
               <FieldNameControl

@@ -1,6 +1,8 @@
 import {
   ArrowDown,
   ArrowUp,
+  ChevronDown,
+  ChevronUp,
   Copy,
   Eye,
   Play,
@@ -66,6 +68,7 @@ export function DataGrid({
   const [search, setSearch] = useState("");
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState("");
+  const [expandedCell, setExpandedCell] = useState<string | null>(null);
 
   const columns = useMemo(
     () => [...new Set(records.flatMap((row) => Object.keys(row)))],
@@ -232,6 +235,8 @@ export function DataGrid({
                   const value = row[column];
                   const text = cellText(value);
                   const cellKey = `${index}-${column}`;
+                  const longText = text.length > 140;
+                  const expanded = longText && expandedCell === cellKey;
                   const isSelected =
                     selectedCell?.rowIndex === index && selectedCell?.column === column;
                   const isExecutingCell = executingCell === cellKey;
@@ -239,7 +244,7 @@ export function DataGrid({
                   return (
                     <td
                       key={column}
-                      className={`data-grid-cell group/cell ${isSelected ? "selected-cell" : ""}`}
+                      className={`data-grid-cell group/cell ${isSelected ? "selected-cell" : ""} ${expanded ? "cell-expanded" : ""}`}
                       title={text}
                       onClick={() => {
                         const rec = records[index];
@@ -253,6 +258,8 @@ export function DataGrid({
                           </span>
                         ) : empty ? (
                           <span className="output-null">—</span>
+                        ) : expanded ? (
+                          <span className="data-grid-cell-expanded">{text}</span>
                         ) : (
                           text
                         )}
@@ -269,6 +276,21 @@ export function DataGrid({
                               }}
                             >
                               <Play />
+                            </button>
+                          )}
+                          {longText && (
+                            <button
+                              type="button"
+                              className="grid-icon-btn"
+                              aria-label={expanded ? `Collapse ${column} row ${index + 1}` : `Expand ${column} row ${index + 1}`}
+                              title={expanded ? "Collapse cell" : "Expand cell"}
+                              aria-pressed={expanded}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setExpandedCell((current) => (current === cellKey ? null : cellKey));
+                              }}
+                            >
+                              {expanded ? <ChevronUp /> : <ChevronDown />}
                             </button>
                           )}
                           <button
