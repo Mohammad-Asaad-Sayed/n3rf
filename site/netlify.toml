@@ -1,0 +1,8 @@
+# Netlify deploy config. The site is a multi-page Vite app; output is static.
+# No SPA fallback needed: each route is a real HTML file in dist/.
+[build]
+  command = "pnpm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
