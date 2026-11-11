@@ -2055,10 +2055,17 @@ function WorkflowEditor({
             aria-label="Workflow canvas"
             onPointerDown={beginPan}
             onWheel={(event) => {
-              if (event.ctrlKey || event.metaKey) {
-                event.preventDefault();
-                setZoom((current) => Math.max(0.45, Math.min(1.5, current + (event.deltaY < 0 ? 0.05 : -0.05))));
-              }
+              event.preventDefault();
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              const rect = canvas.getBoundingClientRect();
+              const cx = event.clientX - rect.left;
+              const cy = event.clientY - rect.top;
+              const factor = event.deltaY < 0 ? 1.1 : 0.9;
+              const nextZoom = Math.max(0.45, Math.min(1.5, zoom * factor));
+              const scale = nextZoom / zoom;
+              setPan((current) => ({ x: cx - (cx - current.x) * scale, y: cy - (cy - current.y) * scale }));
+              setZoom(nextZoom);
             }}
           >
             <div className="canvas-hud">
