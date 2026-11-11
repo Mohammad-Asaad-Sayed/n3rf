@@ -248,7 +248,7 @@ export function TemplatesPage() {
           <a key={playbook.id} className="templates-rail-item" href={`#${playbook.id}`}>
             <span className="templates-rail-index">{String(index + 1).padStart(2, "0")}</span>
             <playbook.icon aria-hidden="true" />
-            <span>{playbook.title.split(" ").slice(0, 2).join(" ").toUpperCase()}</span>
+            <span>{playbook.tag}</span>
           </a>
         ))}
       </nav>
