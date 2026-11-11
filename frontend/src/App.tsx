@@ -1091,6 +1091,24 @@ function WorkflowEditor({
   };
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handler = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const cx = event.clientX - rect.left;
+      const cy = event.clientY - rect.top;
+      const factor = event.deltaY < 0 ? 1.1 : 0.9;
+      const nextZoom = Math.max(0.45, Math.min(1.5, zoom * factor));
+      const scale = nextZoom / zoom;
+      setPan((current) => ({ x: cx - (cx - current.x) * scale, y: cy - (cy - current.y) * scale }));
+      setZoom(nextZoom);
+    };
+    canvas.addEventListener("wheel", handler, { passive: false });
+    return () => canvas.removeEventListener("wheel", handler);
+  }, [zoom]);
+
   const specById = useMemo(() => new Map(catalog.map((spec) => [spec.id, spec])), [catalog]);
   const selected = nodes.find((node) => node.id === selectedId) ?? null;
   const selectedSpec = selected ? specById.get(selected.type) ?? null : null;
@@ -2054,19 +2072,7 @@ function WorkflowEditor({
             className={`canvas${runningNodeId !== null ? " is-running" : ""}`}
             aria-label="Workflow canvas"
             onPointerDown={beginPan}
-            onWheel={(event) => {
-              event.preventDefault();
-              const canvas = canvasRef.current;
-              if (!canvas) return;
-              const rect = canvas.getBoundingClientRect();
-              const cx = event.clientX - rect.left;
-              const cy = event.clientY - rect.top;
-              const factor = event.deltaY < 0 ? 1.1 : 0.9;
-              const nextZoom = Math.max(0.45, Math.min(1.5, zoom * factor));
-              const scale = nextZoom / zoom;
-              setPan((current) => ({ x: cx - (cx - current.x) * scale, y: cy - (cy - current.y) * scale }));
-              setZoom(nextZoom);
-            }}
+            onWheel={(event) => event.preventDefault()}
           >
             <div className="canvas-hud">
               {!paletteOpen && (
