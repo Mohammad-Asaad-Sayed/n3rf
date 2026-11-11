@@ -365,7 +365,7 @@
 .landing-proof i { margin-left: auto; font-style: normal; }
 
 .landing-content { width: min(100% - var(--space-8), 1280px); margin: 0 auto; }
-.landing-section { padding: 64px 0; scroll-margin-top: 64px; }
+.landing-section { padding: 40px 0; scroll-margin-top: 64px; }
 [data-reveal] { opacity: 0; transform: translateY(12px); transition: opacity 420ms var(--ease), transform 420ms var(--ease); }
 [data-reveal][data-revealed="true"] { opacity: 1; transform: translateY(0); }
 
@@ -392,7 +392,7 @@
   .node-marquee-track, .hero-bracket, .landing-proof-dot, .theme-bar-row i { animation: none; }
   .landing-hero-frame { transform: none; }
 }
-.landing-section-heading { max-width: 780px; margin-bottom: var(--space-6); }
+.landing-section-heading { max-width: 780px; margin-bottom: var(--space-4); }
 .landing-section-heading h2, .landing-ritual h2, .landing-onepager h2 {
   margin: var(--space-3) 0;
   color: var(--text-primary);
