@@ -255,11 +255,19 @@ export function CommunityPage() {
               </ul>
             </div>
             <aside className="sponsorship-cta">
-              <span className="landing-kicker">PARTNER WITH US</span>
-              <h3>Let's talk.</h3>
-              <p>No form, no invoice, no price list yet — the community launches first. Tell us what you'd like to sponsor and we'll work out the terms together, honestly.</p>
-              <a className="ui-button ui-button-md ui-button-primary" href={SPONSOR_ISSUE_URL} target="_blank" rel="noreferrer">Sponsor via GitHub <ArrowUpRight aria-hidden="true" /></a>
-              <p className="sponsorship-note">We reply through GitHub. No commitment until we've both agreed — and no publicity you didn't approve.</p>
+              <div className="sponsorship-cta-top">
+                <span className="sponsorship-cta-mark" aria-hidden="true"><HeartHandshake /></span>
+                <span className="landing-kicker">PARTNER WITH US</span>
+                <h3>Let's talk.</h3>
+                <p>No form, no invoice, no price list yet — the community launches first. Tell us what you'd like to sponsor and we'll work out the terms together, honestly.</p>
+                <a className="ui-button ui-button-md ui-button-primary" href={SPONSOR_ISSUE_URL} target="_blank" rel="noreferrer">Sponsor via GitHub <ArrowUpRight aria-hidden="true" /></a>
+                <p className="sponsorship-note">We reply through GitHub. No commitment until we've both agreed — and no publicity you didn't approve.</p>
+              </div>
+              <div className="sponsorship-cta-foot" aria-label="What sponsorship means">
+                <span>NO MINIMUM</span>
+                <span>IN-KIND WELCOME</span>
+                <span>CREDIT WHERE IT'S DUE</span>
+              </div>
             </aside>
           </div>
           <div className="sponsorship-help">
