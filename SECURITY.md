@@ -37,6 +37,8 @@ workflow code in a resource-limited child process, but its Python sandbox is not
 boundary for untrusted users or multi-tenant hosting. Do not expose the application to an
 untrusted network or allow untrusted people to submit Code-node workflows.
 
+The HTTP Request node blocks private, loopback, link-local and reserved addresses (SSRF
+guard), disables redirects, and can be turned off entirely with `N3RF_HTTP_NODE_DISABLED=1`.
 Provider API keys should be supplied to the FastAPI process through environment variables.
 Model profiles store the variable name, not the secret. As a second mode, an Ask AI
 node (or a model connection test) accepts a pasted key for that one request only:
