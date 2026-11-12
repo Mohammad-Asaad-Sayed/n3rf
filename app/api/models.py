@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Any
 
@@ -9,6 +10,20 @@ from app.llm import test_connection
 from app.schemas.workflow import ModelProfileRequest
 
 router = APIRouter(prefix="/models", tags=["models"])
+
+# Conventional env-var names for the provider presets baked into the node
+# catalog. Only the name is looked up — values are never read into responses.
+KNOWN_PROVIDER_ENVS = (
+    "OPENAI_API_KEY",
+    "GROQ_API_KEY",
+    "GEMINI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "MISTRAL_API_KEY",
+    "HUGGINGFACE_API_KEY",
+    "CLOUDFLARE_API_TOKEN",
+    "ANTHROPIC_API_KEY",
+    "XAI_API_KEY",
+)
 
 
 @router.get("")
@@ -31,6 +46,27 @@ async def test_model(request: ModelProfileRequest) -> dict[str, Any]:
         )
     except NodeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@router.get("/status")
+def model_status() -> dict[str, Any]:
+    """Tell the UI whether any provider can actually be reached right now.
+
+    A profile counts as ready when its api_key_env is set (or blank, for
+    keyless local providers). Failing that, any conventional provider env
+    var being set also counts. Only booleans leave this function — never
+    key material.
+    """
+    profiles = store.list_model_profiles()
+
+    def resolvable(profile: dict[str, Any]) -> bool:
+        env = (profile.get("api_key_env") or "").strip()
+        return not env or bool(os.environ.get(env))
+
+    ready = any(resolvable(profile) for profile in profiles) or any(
+        os.environ.get(name) for name in KNOWN_PROVIDER_ENVS
+    )
+    return {"ready": ready, "profiles": len(profiles)}
 
 
 @router.delete("/{profile_id}", status_code=204)

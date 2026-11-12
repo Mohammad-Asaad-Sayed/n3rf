@@ -194,6 +194,7 @@ function HomePage({
     updated_at?: string;
   }>>([]);
   const [nodeCount, setNodeCount] = useState<number | null>(null);
+  const [providerReady, setProviderReady] = useState<boolean | null>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -241,6 +242,15 @@ function HomePage({
       }
     }
     void loadHome();
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch("/models/status")
+      .then((response) => (response.ok ? response.json() : null) as Promise<{ ready?: boolean } | null>)
+      .then((payload) => { if (active) setProviderReady(payload?.ready ?? true); })
+      .catch(() => { if (active) setProviderReady(true); });
     return () => { active = false; };
   }, []);
 
@@ -317,6 +327,14 @@ function HomePage({
           <div className="hero-index">N° 01 <span>LOCAL-FIRST BUILDER</span></div>
         </section>
 
+        {providerReady === false && (
+          <div className="provider-banner" role="status">
+            <span><strong>No model provider connected yet.</strong> AI nodes fail until an API key is set in the server environment.</span>
+            <button type="button" className="provider-banner-action" onClick={onModels}>
+              <Settings2 aria-hidden="true" /> Configure a provider
+            </button>
+          </div>
+        )}
         <section className="home-overview" aria-label="Workspace overview">
           <div className="overview-label"><span className="home-eyebrow">AT A GLANCE</span><span className="overview-line" /></div>
           <div className="overview-stat"><strong>{loading ? "—" : String(workflows.length).padStart(2, "0")}</strong><span>SAVED WORKFLOWS</span></div>

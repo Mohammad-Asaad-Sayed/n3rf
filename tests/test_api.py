@@ -189,3 +189,60 @@ async def _exercise_save_strip():
         params = saved["nodes"][0]["params"]
         assert "api_key" not in params
         assert params["api_key_env"] == "TEST_KEY"
+
+
+KNOWN_PROVIDER_ENV_NAMES = (
+    "OPENAI_API_KEY",
+    "GROQ_API_KEY",
+    "GEMINI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "MISTRAL_API_KEY",
+    "HUGGINGFACE_API_KEY",
+    "CLOUDFLARE_API_TOKEN",
+    "ANTHROPIC_API_KEY",
+    "XAI_API_KEY",
+)
+
+
+def test_model_status_reports_provider_readiness(monkeypatch):
+    with tempfile.TemporaryDirectory() as directory:
+        monkeypatch.setenv("N3RF_DB_PATH", f"{directory}/status.sqlite3")
+        for name in KNOWN_PROVIDER_ENV_NAMES:
+            monkeypatch.delenv(name, raising=False)
+
+        fresh = asyncio.run(_model_status())
+        assert fresh == {"ready": False, "profiles": 0}
+
+        saved = asyncio.run(_save_status_profile())
+        assert saved.status_code == 201
+
+        unresolved = asyncio.run(_model_status())
+        assert unresolved == {"ready": False, "profiles": 1}
+
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-a-real-secret")
+        resolved = asyncio.run(_model_status())
+        assert resolved == {"ready": True, "profiles": 1}
+
+
+async def _model_status():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.get("/models/status")
+        assert response.status_code == 200
+        return response.json()
+
+
+async def _save_status_profile():
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        return await client.post(
+            "/models",
+            json={
+                "name": "OpenAI",
+                "base_url": "https://api.openai.com/v1",
+                "model": "gpt-4o-mini",
+                "api_key_env": "OPENAI_API_KEY",
+            },
+        )
