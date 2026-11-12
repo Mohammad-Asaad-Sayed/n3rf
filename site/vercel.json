@@ -1,0 +1,10 @@
+# Vercel deploy config. The site is a multi-page Vite app; output is static.
+# No SPA fallback needed: each route is a real HTML file in dist/.
+# cleanUrls mirrors Netlify's pretty URLs: /legal serves legal/index.html.
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "cleanUrls": true
+}
