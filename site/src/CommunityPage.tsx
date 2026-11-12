@@ -103,6 +103,7 @@ const sponsorshipCovers = [
   { strong: "Venue or host", rest: " — offer a space in Pune for build sessions, walkthroughs, and meetups." },
   { strong: "Tea, food & essentials", rest: " — five people or fifty, goodwill compounds fast." },
   { strong: "Equipment & streaming", rest: " — cameras, mics, and capture so remotes can follow along." },
+  { strong: "API credits & model access", rest: " — sponsor provider tokens or credits for build sessions. Members use a sponsored pool or their own keys — nobody's API key is shared." },
   { strong: "Community sponsor", rest: " — recurring support that keeps the room open as the group grows." },
 ];
 
