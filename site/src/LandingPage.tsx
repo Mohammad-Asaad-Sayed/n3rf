@@ -88,6 +88,7 @@ const compareRows = [
   ["Provider and model choice", "Configure a supported model/provider", "Options depend on current Clay features", "Depends on the connected apps", "Choose a chat model", "Choose and configure your stack"],
   ["Pricing model", "$0 n3rf fee; provider charges may apply", "Plans and credits; check current pricing", "Plans and task limits vary", "Plan or API charges may apply", "Development and provider costs"],
   ["Where it runs", "Locally, with configured provider calls", "Clay's hosted platform", "Hosted or self-hosted, depending on product", "Depends on the chat provider", "Where you deploy it"],
+  ["Setup", "One command or agent-driven", "Account and onboarding", "Account and onboarding", "Account required", "You build and deploy"],
 ];
 
 const pipeline = [
@@ -138,6 +139,18 @@ const faqs = [
   {
     q: "What kind of data can I enrich?",
     a: "Any tabular data that fits your workflow. For example, research companies, compare products, categorize reviews, or summarize public information. Results depend on your prompts, source data, and providers, so verify important outputs.",
+  },
+  {
+    q: "Can an AI agent set this up for me?",
+    a: "Yes. Paste the repo URL into OpenCode, Claude Code, or Codex and it clones, installs, builds, and runs n3rf for you. See SETUP.md for the exact steps.",
+  },
+  {
+    q: "Is n3rf open source?",
+    a: "Yes. n3rf is licensed under AGPL-3.0. It is free to self-host, and a separate commercial license is available for embedding it in proprietary products.",
+  },
+  {
+    q: "Can an agent and I edit the same workflow?",
+    a: "Yes. Workflows use versioned saves, so neither you nor the agent silently overwrites the other. The agent asks before saving, and conflicting edits are rejected with a clear message.",
   },
 ];
 
@@ -243,6 +256,8 @@ export function LandingPage() {
                   Turn a spreadsheet into a clean, useful dataset without shuttling
                   rows between a chat window and a script. Build a workflow around
                   your data, use your own AI provider, and see what each step did.
+                  Self-hosted, AGPL-licensed, and agent-ready: paste the repo URL
+                  into OpenCode, Claude Code, or Codex and it sets itself up.
                 </p>
                 <div className="landing-hero-actions">
                   <a
@@ -438,6 +453,7 @@ export function LandingPage() {
             <article><span className="cost-card-label"><Brain aria-hidden="true" /><span className="landing-kicker">AI MODEL</span></span><h3>Your provider</h3><p>Connect a model with your own API key. Provider charges depend on your model and usage.</p><small>BRING YOUR OWN KEY</small></article>
             <article><span className="cost-card-label"><Search aria-hidden="true" /><span className="landing-kicker">SEARCH SERVICES</span></span><h3>Your choice</h3><p>Use supported search and page-reading providers. Their pricing, limits, and key requirements vary.</p><small>CHECK PROVIDER TERMS</small></article>
             <article><span className="cost-card-label"><Cpu aria-hidden="true" /><span className="landing-kicker">LOCAL MODEL</span></span><h3>Run locally</h3><p>Connect a local model such as Ollama. You supply and maintain the hardware.</p><small>NO MODEL API BILL</small></article>
+            <article><span className="cost-card-label"><Sparkles aria-hidden="true" /><span className="landing-kicker">AGENT-READY</span></span><h3>One-command setup</h3><p>Paste the repo URL into OpenCode, Claude Code, or Codex and it installs and runs n3rf for you.</p><small>AGPL-3.0 · OPEN SOURCE</small></article>
           </div>
           <p className="pipeline-note"><ArrowRight /> A small test can help you understand token use; it cannot guarantee the cost or output of a full run.</p>
         </section>
