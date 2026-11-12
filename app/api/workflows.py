@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response
 
 from app import store
-from app.errors import NodeError
+from app.errors import ConflictError, NodeError
 from app.schemas.workflow import WorkflowRequest
 from app.services.execution import validate_graph
 
@@ -23,7 +23,7 @@ def create_workflow(request: WorkflowRequest) -> dict[str, Any]:
         validate_graph(request.nodes, request.edges)
     except NodeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return store.save_workflow(workflow_id, request.name, request.model_dump())
+    return store.save_workflow(workflow_id, request.name, request.model_dump(), None)
 
 
 @router.get("/{workflow_id}")
@@ -42,7 +42,12 @@ def update_workflow(workflow_id: str, request: WorkflowRequest) -> dict[str, Any
         validate_graph(request.nodes, request.edges)
     except NodeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    return store.save_workflow(workflow_id, request.name, request.model_dump())
+    try:
+        return store.save_workflow(
+            workflow_id, request.name, request.model_dump(), request.version
+        )
+    except ConflictError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.delete("/{workflow_id}", status_code=204)

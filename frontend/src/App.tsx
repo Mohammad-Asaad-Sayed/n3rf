@@ -1022,6 +1022,7 @@ function WorkflowEditor({
   const [workflows, setWorkflows] = useState<SavedWorkflow[]>([]);
   const [modelProfiles, setModelProfiles] = useState<ModelProfile[]>([]);
   const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [workflowVersion, setWorkflowVersion] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [search, setSearch] = useState("");
   const [widths, setWidths] = useState<PaneWidths>(readPaneWidths);
@@ -1722,11 +1723,13 @@ function WorkflowEditor({
       const response = await apiFetch(workflowId ? `/workflows/${workflowId}` : "/workflows", {
         method: workflowId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: workflowName, nodes: stripEphemeralKeys(nodes), edges }),
+        body: JSON.stringify({ name: workflowName, nodes: stripEphemeralKeys(nodes), edges, version: workflowVersion }),
       });
       const payload = await response.json();
+      if (response.status === 409) throw new Error("Workflow changed elsewhere. Reload and try again.");
       if (!response.ok) throw new Error(payload.detail || "Save failed.");
       setWorkflowId(payload.id);
+      setWorkflowVersion(payload.version ?? null);
       setWorkflows((current) => [
         { id: payload.id, name: payload.name },
         ...current.filter((workflow) => workflow.id !== payload.id),
@@ -1744,6 +1747,7 @@ function WorkflowEditor({
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.detail || "Workflow could not be loaded.");
       setWorkflowId(payload.id);
+      setWorkflowVersion(payload.version ?? null);
       setWorkflowName(payload.name);
       setNodes(normalizeNodePositions(payload.nodes));
       setEdges(payload.edges);

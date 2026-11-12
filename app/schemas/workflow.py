@@ -16,6 +16,7 @@ class WorkflowRequest(BaseModel):
     name: str = "Untitled workflow"
     nodes: list[dict[str, Any]] = Field(default_factory=list)
     edges: list[dict[str, Any]] = Field(default_factory=list)
+    version: int | None = None
 
 
 class ModelProfileRequest(BaseModel):

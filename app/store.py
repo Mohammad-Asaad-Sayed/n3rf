@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_engine
+from app.errors import ConflictError
 from app.models import ModelProfileRecord, RunRecord, WorkflowRecord
 
 
@@ -14,6 +15,7 @@ def _workflow_payload(record: WorkflowRecord) -> dict[str, Any]:
     return {
         "id": record.id,
         "name": record.name,
+        "version": json.loads(record.data).get("version", 1),
         **json.loads(record.data),
         "updated_at": record.updated_at.isoformat(sep=" "),
     }
@@ -31,7 +33,12 @@ def get_workflow(workflow_id: str) -> dict[str, Any] | None:
         return _workflow_payload(record) if record else None
 
 
-def save_workflow(workflow_id: str, name: str, data: dict[str, Any]) -> dict[str, Any]:
+def save_workflow(
+    workflow_id: str,
+    name: str,
+    data: dict[str, Any],
+    expected_version: int | None = None,
+) -> dict[str, Any]:
     # Ephemeral BYOK: a pasted api_key is per-request only and is never persisted.
     def _sanitized_nodes() -> list[dict[str, Any]]:
         sanitized = []
@@ -48,7 +55,24 @@ def save_workflow(workflow_id: str, name: str, data: dict[str, Any]) -> dict[str
             sanitized.append(safe)
         return sanitized
 
+    with Session(get_engine()) as db:
+        record = db.get(WorkflowRecord, workflow_id)
+        if record is None:
+            new_version = 1
+        else:
+            try:
+                current_version = int(json.loads(record.data).get("version", 1))
+            except (ValueError, TypeError):
+                current_version = 1
+            if expected_version is not None and current_version != expected_version:
+                raise ConflictError(
+                    f"Workflow version mismatch: expected {expected_version}, "
+                    f"found {current_version}."
+                )
+            new_version = current_version + 1
+
     payload = {
+        "version": new_version,
         "nodes": _sanitized_nodes(),
         "edges": [
             {
