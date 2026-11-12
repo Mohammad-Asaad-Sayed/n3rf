@@ -624,7 +624,7 @@
 .step-card h3 { margin: 0; color: var(--text-primary); font: 600 var(--type-title-s-size)/var(--type-title-s-lh) var(--font-display); }
 .step-card p { margin: 0; color: var(--text-secondary); font: 500 var(--type-body-size)/var(--type-body-lh) var(--font-ui); }
 .step-arrow { position: absolute; top: 50%; right: -7px; z-index: 1; width: 13px; height: 13px; padding: 1px; background: var(--surface-panel); color: var(--text-tertiary); }
-.pricing-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line-hairline); background: var(--surface-panel); }
+.pricing-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--line-hairline); background: var(--surface-panel); }
 .pricing-grid article { min-height: 144px; padding: var(--space-5); border-right: 1px solid var(--line-hairline); }
 .pricing-grid article:last-child { border-right: 0; }
 .pricing-grid h3 { margin: var(--space-3) 0; color: var(--text-primary); font: 600 var(--type-title-m-size)/var(--type-title-m-lh) var(--font-display); }
@@ -668,6 +668,12 @@
   .landing-play-card, .landing-play-choice, .landing-hero-actions .ui-button-primary, .dataset-card, .step-card { transform: none; }
 }
 
+@media (max-width: 1100px) {
+  .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pricing-grid article:nth-child(2n) { border-right: 0; }
+  .pricing-grid article:nth-child(n + 3) { border-top: 1px solid var(--line-hairline); }
+  .pricing-grid article:last-child { grid-column: 1 / -1; border-right: 0; }
+}
 @media (max-width: 900px) {
   .landing-nav { grid-template-columns: 1fr auto; }
   .landing-nav nav { display: flex; overflow-x: auto; scrollbar-width: none; }
@@ -678,9 +684,7 @@
   .run-trace-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .run-trace-step:nth-child(3n) { border-right: 0; }
   .run-trace-step:nth-child(n + 4) { border-top: 1px solid var(--line-hairline); }
-  .datasets-grid, .pricing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pricing-grid article:nth-child(2n) { border-right: 0; }
-  .pricing-grid article:nth-child(n + 3) { border-top: 1px solid var(--line-hairline); }
+  .datasets-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .steps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .step-card:nth-child(2n) { border-right: 0; }
   .step-card:nth-child(n + 3) { border-top: 1px solid var(--line-hairline); }
