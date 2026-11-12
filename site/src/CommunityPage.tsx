@@ -96,6 +96,22 @@ const support = [
   },
 ];
 
+const SPONSOR_ISSUE_URL =
+  "https://github.com/Mohammad-Asaad-Sayed/n3rf/issues/new?title=Sponsorship&body=What+would+you+like+to+sponsor%20%28venue%2C+food%2C+equipment%2C+community%29%3F";
+
+const sponsorshipCovers = [
+  { strong: "Venue or host", rest: " — offer a space in Pune for build sessions, walkthroughs, and meetups." },
+  { strong: "Tea, food & essentials", rest: " — five people or fifty, goodwill compounds fast." },
+  { strong: "Equipment & streaming", rest: " — cameras, mics, and capture so remotes can follow along." },
+  { strong: "Community sponsor", rest: " — recurring support that keeps the room open as the group grows." },
+];
+
+const sponsorshipGets = [
+  "Your name or logo in the room and on this page — plainly credited, always.",
+  "A short, clearly-labeled walkthrough slot at a session — a demo, never a pitch.",
+  "First access to session materials and the mailing list, if you want them.",
+];
+
 const faqs = [
   { q: "When does it open?", a: "Soon. This page will be updated when the group is ready to join." },
   { q: "Is it only for n3rf users?", a: "No. Any open-source GTM tool belongs here — n3rf, n8n, PostHog, OpenBot, or something you built yourself." },
@@ -103,7 +119,7 @@ const faqs = [
   { q: "Is it only for people in Pune?", a: "The focus is Pune — local meetups and a local group — but online and async participation will be part of it too." },
   { q: "Can I share my workflow?", a: "Please do. Share the prompt, the steps, the cost, and what broke. Redact anything sensitive before you post it." },
   { q: "What will meetups look like?", a: "Small and practical. Bring a laptop and a question. Expect 15–20 people at first, working sessions over talks, and time to show what you made." },
-  { q: "Is there a sponsorship program?", a: "Not yet. When n3rf runs on sponsorship it will be listed on this page — not before it's real. Until then, the honest ways to support the project are in section 06: star it, file good issues, share templates, and tell one operator." },
+  { q: "Is there a sponsorship program?", a: "Yes — sponsorship is the community's support system. See section 05 for how to partner (venue, food, equipment, or recurring support). There's no published price list yet; we work out terms with each sponsor directly. The non-financial ways to help are listed there too." },
   { q: "Is there a code of conduct?", a: "Yes. The full rules and participation guide will live in COMMUNITY.md in the repo." },
 ];
 
@@ -215,7 +231,48 @@ export function CommunityPage() {
 
         <section className="landing-section community-section" data-reveal>
           <div className="landing-section-heading">
-            <span className="landing-kicker">05 · FAQ</span>
+            <span className="landing-kicker">05 · SPONSORSHIP</span>
+            <h2>Sponsor the open stack.</h2>
+            <p>n3rf is AGPL-licensed and free, and the community will be free to join. It isn't free to run: venues, tea, streaming, and equipment cost real money, and the group is in growth mode. We want more helping hands — including yours.</p>
+          </div>
+          <div className="sponsorship-grid">
+            <div className="sponsorship-panel">
+              <p className="sponsorship-label">WHAT SPONSORSHIP CAN LOOK LIKE</p>
+              <ul>
+                {sponsorshipCovers.map((item) => (
+                  <li key={item.strong}><strong>{item.strong}</strong>{item.rest}</li>
+                ))}
+              </ul>
+              <p className="sponsorship-label">WHAT SPONSORS GET</p>
+              <ul>
+                {sponsorshipGets.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+            <aside className="sponsorship-cta">
+              <span className="landing-kicker">PARTNER WITH US</span>
+              <h3>Let's talk.</h3>
+              <p>No form, no invoice, no price list yet — the community launches first. Tell us what you'd like to sponsor and we'll work out the terms together, honestly.</p>
+              <a className="ui-button ui-button-md ui-button-primary" href={SPONSOR_ISSUE_URL} target="_blank" rel="noreferrer">Sponsor via GitHub <ArrowUpRight aria-hidden="true" /></a>
+              <p className="sponsorship-note">We reply through GitHub. No commitment until we've both agreed — and no publicity you didn't approve.</p>
+            </aside>
+          </div>
+          <div className="sponsorship-help">
+            <span className="sponsorship-label">CAN'T SPONSOR? STILL HELP</span>
+            <div className="community-who-grid">
+              {support.map((s) => (
+                <article key={s.title} className="community-card">
+                  <div className="community-card-head"><s.icon aria-hidden="true" /><span>{s.title.toUpperCase()}</span></div>
+                  <p>{s.desc}</p>
+                  <a className="community-support-link" href={s.href} target="_blank" rel="noreferrer">{s.link} <ArrowUpRight aria-hidden="true" /></a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">06 · FAQ</span>
             <h2>A few things you might want to know.</h2>
           </div>
           <div className="faq-list">
@@ -224,23 +281,6 @@ export function CommunityPage() {
                 <summary>{f.q}<ArrowUpRight aria-hidden="true" /></summary>
                 <p>{f.a}</p>
               </details>
-            ))}
-          </div>
-        </section>
-
-        <section className="landing-section community-section" data-reveal>
-          <div className="landing-section-heading">
-            <span className="landing-kicker">06 · SUPPORT</span>
-            <h2>Support it by using it.</h2>
-            <p>n3rf is AGPL-licensed and free. No fee, no sponsorship tier to buy, no strings. The best support is using it, breaking it honestly, and telling someone else. If n3rf ever runs on sponsorship, it will say so here — not before it's real.</p>
-          </div>
-          <div className="community-who-grid">
-            {support.map((s) => (
-              <article key={s.title} className="community-card">
-                <div className="community-card-head"><s.icon aria-hidden="true" /><span>{s.title.toUpperCase()}</span></div>
-                <p>{s.desc}</p>
-                <a className="community-support-link" href={s.href} target="_blank" rel="noreferrer">{s.link} <ArrowUpRight aria-hidden="true" /></a>
-              </article>
             ))}
           </div>
         </section>
