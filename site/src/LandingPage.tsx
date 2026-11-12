@@ -5,6 +5,9 @@ import {
   Brain,
   Building2,
   ChevronRight,
+  ArrowDownWideNarrow,
+  FileSpreadsheet,
+  Filter,
   CircleDollarSign,
   Cpu,
   FileCheck2,
@@ -35,31 +38,36 @@ const enrichedCompanies = [
     company: "Apple",
     domain: "apple.com",
     industry: "technology",
-    signal: "Consumer devices, software, and services",
+    aiNote: "Consumer devices, software, and services",
+    aiCeo: "Tim Cook",
   },
   {
     company: "Microsoft",
     domain: "microsoft.com",
     industry: "technology",
-    signal: "Cloud and AI products for businesses",
+    aiNote: "Cloud and AI products for businesses",
+    aiCeo: "Satya Nadella",
   },
   {
     company: "Shopify",
     domain: "shopify.com",
     industry: "ecommerce",
-    signal: "Commerce tools for merchants",
+    aiNote: "Commerce tools for merchants",
+    aiCeo: "Tobi Lütke",
   },
   {
     company: "Notion",
     domain: "notion.so",
     industry: "software",
-    signal: "Connected workspace for docs and knowledge",
+    aiNote: "Docs, wiki, and AI workspace",
+    aiCeo: "Ivan Zhao",
   },
   {
     company: "Stripe",
     domain: "stripe.com",
     industry: "fintech",
-    signal: "Payments infrastructure for internet businesses",
+    aiNote: "Payments infrastructure for businesses",
+    aiCeo: "Patrick Collison",
   },
 ];
 
@@ -97,6 +105,49 @@ const pipeline = [
   ["SEARCH", "498", "498"],
   ["EXTRACT", "498", "498"],
   ["RANK", "498", "341"],
+];
+
+const exampleSteps = [
+  {
+    node: "Manual JSON",
+    kind: "INPUT · CSV",
+    icon: FileSpreadsheet,
+    rows: "1 of 500",
+    mono: `company: "Stripe"\ndomain: "stripe.com"\nindustry: "fintech"`,
+    note: "The sample sheet the workspace ships with — one row, thousands of the same shape.",
+  },
+  {
+    node: "Filter",
+    kind: "TRANSFORM",
+    icon: Filter,
+    rows: "498 in · 498 out",
+    mono: `keep if: {{ $json.domain }} != ""`,
+    note: "Rows without a domain are dropped here — two rows fail and are counted in the run trace.",
+  },
+  {
+    node: "Search",
+    kind: "RESEARCH · TAVILY",
+    icon: Search,
+    rows: "498 in · 498 out",
+    mono: `query: "{{ $json.company }} CEO\n  latest funding round"`,
+    note: "A live web search per row, using your own search provider key.",
+  },
+  {
+    node: "Ask AI",
+    kind: "AI STEP · JSON OUT",
+    icon: Brain,
+    rows: "498 in · 498 out",
+    mono: `for {{ $json.company }}, reply with\n{"summary": "…", "ceo": "…",\n "recent": "…"}`,
+    note: "Each row gets its own plain-language prompt and its own answer — not a directory lookup.",
+  },
+  {
+    node: "Sort",
+    kind: "RANK · KEEP 341",
+    icon: ArrowDownWideNarrow,
+    rows: "498 in · 341 kept",
+    mono: `sort by: {{ $json.recent }} desc\nkeep top 341`,
+    note: "Ranked by how fresh the signal is; the rest stay in the run history, unranked.",
+  },
 ];
 
 const faqs = [
@@ -232,7 +283,7 @@ export function LandingPage() {
       "500 rows in → 498 after filters → 341 kept",
       "",
       ...enrichedCompanies.map(
-        (c) => `${c.company},${c.domain},${c.industry},${c.signal}`,
+        (c) => `${c.company},${c.domain},${c.industry},${c.aiCeo},${c.aiNote}`,
       ),
       "",
       "No live model or search calls are made for this prepared example.",
@@ -391,30 +442,47 @@ export function LandingPage() {
         <section className="landing-section landing-artifact" id="landing-artifact" data-reveal>
           <div className="landing-section-heading">
             <span className="landing-kicker">03 · Example workflow · prepared data</span>
-            <h2>See a workflow from input to output.</h2>
-            <p>This prepared example shows how rows move through a workflow. It is an illustration of the product—not a customer result or a promise of research accuracy.</p>
+            <h2>Follow one row from sheet to answer.</h2>
+            <p>The workspace ships with this prepared example. Each step shows the node it used, the exact setting you’d write, and what it did to the rows — the same detail you get in the results panel.</p>
           </div>
+          <ol className="flow-steps" aria-label="How the example row moves through the workflow">
+            {exampleSteps.map((step, index) => (
+              <li className="flow-step" key={step.node}>
+                <div className="flow-step-head">
+                  <span className="flow-step-index">{String(index + 1).padStart(2, "0")}</span>
+                  <step.icon aria-hidden="true" />
+                  <span className="flow-step-name">{step.node}</span>
+                </div>
+                <span className="flow-step-kind">{step.kind}</span>
+                <pre className="flow-step-mono">{step.mono}</pre>
+                <span className="flow-step-rows">{step.rows}</span>
+                <p>{step.note}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="flow-foot"><i /> PREPARED EXAMPLE · NO LIVE CALLS · YOUR WORKFLOW, YOUR PROMPTS, YOUR PROVIDER</p>
           <div className="artifact-example">
             <div className="artifact-table-panel">
-              <div className="artifact-panel-heading"><span>ENRICHED COMPANY LIST</span><small>PREPARED EXAMPLE · 5 ROWS</small></div>
+              <div className="artifact-panel-heading"><span>ENRICHED COMPANY LIST</span><small>PREPARED EXAMPLE · 5 OF 341 ROWS KEPT</small></div>
               <div className="artifact-table-scroll">
                 <table className="artifact-table">
-                  <thead><tr><th>COMPANY</th><th>DOMAIN</th><th>INDUSTRY</th><th>RESEARCH NOTE</th></tr></thead>
+                  <thead><tr><th>COMPANY</th><th>DOMAIN</th><th>INDUSTRY</th><th className="ai-col">CEO</th><th className="ai-col">SIGNAL</th></tr></thead>
                   <tbody>
                     {enrichedCompanies.map((c) => (
                       <tr key={c.company}>
                         <th scope="row">{c.company}</th>
                         <td>{c.domain}</td>
                         <td>{c.industry}</td>
-                        <td className="artifact-quote">{c.signal}</td>
+                        <td className="ai-col">{c.aiCeo}</td>
+                        <td className="ai-col artifact-quote">{c.aiNote}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <div className="enriched-note">
-                <span>Illustrative AI-generated output</span>
-                <small>Prepared data, not customer results. Verify information before relying on it.</small>
+                <span className="ai-legend"><i />AI-GENERATED COLUMNS</span>
+                <small>Prepared data, not customer results. AI output can be inaccurate — verify before relying on it.</small>
               </div>
             </div>
             <div className="run-trace-panel">
