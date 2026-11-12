@@ -124,7 +124,10 @@ const faqs = [
 export function CommunityPage() {
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
       elements.forEach((el) => el.setAttribute("data-revealed", "true"));
       return;
     }
@@ -139,7 +142,13 @@ export function CommunityPage() {
       { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
     );
     elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    const fallback = window.setTimeout(() => {
+      elements.forEach((el) => el.setAttribute("data-revealed", "true"));
+    }, 1500);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (

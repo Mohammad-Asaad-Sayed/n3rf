@@ -175,7 +175,10 @@ export function LandingPage() {
 
   useEffect(() => {
     const elements = document.querySelectorAll<HTMLElement>("[data-reveal]");
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
       elements.forEach((element) => element.setAttribute("data-revealed", "true"));
       return;
     }
@@ -191,7 +194,14 @@ export function LandingPage() {
       { threshold: 0.14, rootMargin: "0px 0px -6% 0px" },
     );
     elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
+    // Safety net: never leave content invisible if the observer stalls.
+    const fallback = window.setTimeout(() => {
+      elements.forEach((element) => element.setAttribute("data-revealed", "true"));
+    }, 1500);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   function tiltElement(event: ReactPointerEvent<HTMLElement>) {
@@ -251,7 +261,7 @@ export function LandingPage() {
             <div className="landing-hero-main">
               <div className="landing-hero-copy">
                 <p className="landing-qualifier">AI DATA WORKFLOWS · YOUR MODEL · NO PLATFORM FEE</p>
-                <h1>AI workflows for messy rows—with every step in view.</h1>
+                <h1>AI workflows for messy rows—<em className="landing-accent-word">with every step in&nbsp;view.</em></h1>
                 <p className="landing-subhead">
                   Turn a spreadsheet into a clean, useful dataset without shuttling
                   rows between a chat window and a script. Build a workflow around
