@@ -38,6 +38,13 @@ Sensitive HTTP headers use an environment reference such as `${ENV:MY_SERVICE_TO
 authorization/key/token/secret headers are rejected so credentials do not enter saved workflows.
 See [SECURITY.md](./SECURITY.md) for vulnerability reporting and deployment security notes.
 
+## License
+
+n3rf is licensed under the [GNU Affero General Public License v3.0](./LICENSE)
+(AGPL-3.0-only). See [LICENSE-NOTICE.md](./LICENSE-NOTICE.md) for a
+plain-language summary. A separate commercial license may be available for
+embedding n3rf in a closed-source or proprietary product.
+
 ## Project layout and data
 
 - `app/` is the Python backend package: FastAPI routes live in `app/api/`, request schemas in

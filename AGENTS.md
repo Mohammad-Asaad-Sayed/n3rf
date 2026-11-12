@@ -75,6 +75,8 @@ app/
   sandbox.py         child process, rlimits, audit hook
   static/
     eva01-tokens.css shared design tokens
+LICENSE              AGPL-3.0 license text
+LICENSE-NOTICE.md    plain-language license summary
 migrations/
   env.py             Alembic migration environment
   versions/          Versioned database schema changes
