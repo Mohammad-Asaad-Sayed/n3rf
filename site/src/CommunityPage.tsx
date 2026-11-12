@@ -96,9 +96,6 @@ const support = [
   },
 ];
 
-const SPONSOR_ISSUE_URL =
-  "https://github.com/Mohammad-Asaad-Sayed/n3rf/issues/new?title=Sponsorship&body=What+would+you+like+to+sponsor%20%28venue%2C+food%2C+equipment%2C+community%29%3F";
-
 const sponsorshipCovers = [
   { icon: MapPin, strong: "Venue or host", rest: "Offer a space in Pune for build sessions, walkthroughs, and meetups." },
   { icon: Coffee, strong: "Tea, food & essentials", rest: "Five people or fifty — goodwill compounds fast." },
@@ -260,8 +257,8 @@ export function CommunityPage() {
                 <span className="landing-kicker">PARTNER WITH US</span>
                 <h3>Let's talk.</h3>
                 <p>No form, no invoice, no price list yet — the community launches first. Tell us what you'd like to sponsor and we'll work out the terms together, honestly.</p>
-                <a className="ui-button ui-button-md ui-button-primary" href={SPONSOR_ISSUE_URL} target="_blank" rel="noreferrer">Sponsor via GitHub <ArrowUpRight aria-hidden="true" /></a>
-                <p className="sponsorship-note">We reply through GitHub. No commitment until we've both agreed — and no publicity you didn't approve.</p>
+                <button type="button" className="ui-button ui-button-md ui-button-primary" title="Sponsorship details coming soon" aria-label="Sponsor, coming soon">Sponsor</button>
+                <p className="sponsorship-note">Sponsorship details land here when the community launches — no publicity you didn't approve, no commitment until we've both agreed.</p>
               </div>
               <div className="sponsorship-cta-foot" aria-label="What sponsorship means">
                 <span>NO MINIMUM</span>
