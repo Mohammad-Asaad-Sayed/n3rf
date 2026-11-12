@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ArrowUpRight, Sparkles, Users, Wrench, MessageSquare, ShieldCheck, Star, Bug, ClipboardList, Share2 } from "lucide-react";
+import { ArrowUpRight, Sparkles, Users, Wrench, MessageSquare, ShieldCheck, Star, Bug, ClipboardList, Share2, MapPin, Coffee, Video, KeyRound, HeartHandshake, Check } from "lucide-react";
 import "./styles/landing.css";
 import { SiteNav } from "./SiteNav";
 
@@ -100,17 +100,17 @@ const SPONSOR_ISSUE_URL =
   "https://github.com/Mohammad-Asaad-Sayed/n3rf/issues/new?title=Sponsorship&body=What+would+you+like+to+sponsor%20%28venue%2C+food%2C+equipment%2C+community%29%3F";
 
 const sponsorshipCovers = [
-  { strong: "Venue or host", rest: " — offer a space in Pune for build sessions, walkthroughs, and meetups." },
-  { strong: "Tea, food & essentials", rest: " — five people or fifty, goodwill compounds fast." },
-  { strong: "Equipment & streaming", rest: " — cameras, mics, and capture so remotes can follow along." },
-  { strong: "API credits & model access", rest: " — sponsor provider tokens or credits for build sessions. Members use a sponsored pool or their own keys — nobody's API key is shared." },
-  { strong: "Community sponsor", rest: " — recurring support that keeps the room open as the group grows." },
+  { icon: MapPin, strong: "Venue or host", rest: "Offer a space in Pune for build sessions, walkthroughs, and meetups." },
+  { icon: Coffee, strong: "Tea, food & essentials", rest: "Five people or fifty — goodwill compounds fast." },
+  { icon: Video, strong: "Equipment & streaming", rest: "Cameras, mics, and capture so remotes can follow along." },
+  { icon: KeyRound, strong: "API credits & model access", rest: "Provider tokens for build sessions — sponsored pool or member keys, nobody's key is shared." },
+  { icon: HeartHandshake, strong: "Community sponsor", rest: "Recurring support that keeps the room open as the group grows." },
 ];
 
 const sponsorshipGets = [
   "Your name or logo in the room and on this page — plainly credited, always.",
   "A short, clearly-labeled walkthrough slot at a session — a demo, never a pitch.",
-  "First access to session materials and the mailing list, if you want them.",
+  "First access to session materials, if you want them.",
 ];
 
 const faqs = [
@@ -239,14 +239,19 @@ export function CommunityPage() {
           <div className="sponsorship-grid">
             <div className="sponsorship-panel">
               <p className="sponsorship-label">WHAT SPONSORSHIP CAN LOOK LIKE</p>
-              <ul>
+              <div className="sponsorship-lanes">
                 {sponsorshipCovers.map((item) => (
-                  <li key={item.strong}><strong>{item.strong}</strong>{item.rest}</li>
+                  <div className="sponsorship-lane" key={item.strong}>
+                    <item.icon aria-hidden="true" />
+                    <div><strong>{item.strong}</strong><p>{item.rest}</p></div>
+                  </div>
                 ))}
-              </ul>
+              </div>
               <p className="sponsorship-label">WHAT SPONSORS GET</p>
-              <ul>
-                {sponsorshipGets.map((item) => <li key={item}>{item}</li>)}
+              <ul className="sponsorship-gets">
+                {sponsorshipGets.map((item) => (
+                  <li key={item}><Check aria-hidden="true" />{item}</li>
+                ))}
               </ul>
             </div>
             <aside className="sponsorship-cta">
