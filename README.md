@@ -33,7 +33,8 @@ The public site is built and deployed separately. For local app development, sta
 port 8000 and run `cd frontend && pnpm dev`; Vite proxies API requests to FastAPI. For site
 development, run `cd site && pnpm dev`. The node catalog is generated from the Python registry
 at `GET /nodes`. For AI nodes, set `OPENAI_API_KEY` in the environment (or change the node's
-`api_key_env`). Keys are never saved with workflows. When no provider can currently be
+`api_key_env`), or copy `.env.example` to `.env` — `./scripts/run.sh` loads it automatically.
+Keys are never saved with workflows. When no provider can currently be
 reached, the workspace home shows a hint and `GET /models/status` returns `{"ready": false}`.
 Sensitive HTTP headers use an environment reference such as `${ENV:MY_SERVICE_TOKEN}`; literal
 authorization/key/token/secret headers are rejected so credentials do not enter saved workflows.

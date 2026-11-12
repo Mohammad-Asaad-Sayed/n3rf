@@ -40,6 +40,10 @@ export OPENAI_API_KEY="your-provider-key"
 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
+Or copy `.env.example` to `.env`, fill in the keys you use, and start via
+`./scripts/run.sh`, which loads `.env` automatically (KEY=value lines only; the file is
+gitignored and must never be committed).
+
 Add a provider profile in **Models** using its OpenAI-compatible base URL, model name, and the
 environment-variable name. The profile stores its configuration, not the secret value. Model
 and search providers may separately charge for their services.

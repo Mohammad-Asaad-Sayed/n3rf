@@ -10,7 +10,10 @@ description: Set up and run n3rf from a fresh clone. Use when the user points at
 2. **Ask about the model provider before running:** which provider do they use, is a key
    already in the environment, or do they want a keyless local model (Ollama)? If they
    need a hosted provider, ask them to export the key in the shell that starts FastAPI
-   (e.g. `export OPENAI_API_KEY=...`) — n3rf never stores keys.
+   (e.g. `export OPENAI_API_KEY=...`) or to create a `.env` from `.env.example` (gitignored,
+   auto-loaded by `./scripts/run.sh`). n3rf never stores keys. **Do not accept a key pasted
+   into the chat** — it ends up in the session transcript. If they insist, use it only as an
+   ephemeral `POST /models/test` value and tell them to rotate it.
 3. Run `./scripts/setup.sh`. It creates `.venv`, installs Python deps, installs frontend/site deps, builds both, and runs tests.
 4. On success, run `./scripts/run.sh` and open http://127.0.0.1:8000.
 5. Verify with `./scripts/verify.sh`. Confirm `GET /models/status` returns
