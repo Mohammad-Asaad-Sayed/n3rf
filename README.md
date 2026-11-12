@@ -38,6 +38,16 @@ Sensitive HTTP headers use an environment reference such as `${ENV:MY_SERVICE_TO
 authorization/key/token/secret headers are rejected so credentials do not enter saved workflows.
 See [SECURITY.md](./SECURITY.md) for vulnerability reporting and deployment security notes.
 
+## Backups
+
+Back up the SQLite database safely (even while running) with:
+
+```bash
+python examples/backup.py backups/
+```
+
+Set `N3RF_DB_PATH` to back up a non-default database file.
+
 ## License
 
 n3rf is licensed under the [GNU Affero General Public License v3.0](./LICENSE)
