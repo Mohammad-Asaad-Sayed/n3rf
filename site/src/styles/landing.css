@@ -889,7 +889,7 @@
 .site-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 75%, transparent); }
 .site-nav-cta svg { width: 13px; height: 13px; }
 @media (max-width: 640px) {
-  .site-nav-wordmark { display: none; }
+  .site-nav-wordmark { font-size: var(--type-title-s-size); letter-spacing: 0.06em; }
   .site-nav-cta { padding: 0 var(--space-3); }
 }
 
