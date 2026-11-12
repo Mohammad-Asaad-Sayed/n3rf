@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { ArrowUpRight, Sparkles, Users, Wrench, MessageSquare, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Sparkles, Users, Wrench, MessageSquare, ShieldCheck, Star, Bug, ClipboardList, Share2 } from "lucide-react";
 import "./styles/landing.css";
 import { SiteNav } from "./SiteNav";
 
@@ -62,6 +62,40 @@ const rules = [
   "Follow the project's Code of Conduct (in the repo).",
 ];
 
+const REPO_URL = "https://github.com/Mohammad-Asaad-Sayed/n3rf";
+const ISSUES_URL = "https://github.com/Mohammad-Asaad-Sayed/n3rf/issues";
+
+const support = [
+  {
+    icon: Star,
+    title: "Star the repo",
+    desc: "A star is thirty seconds, costs nothing, and is how other operators find this before spending hours rebuilding it themselves.",
+    href: REPO_URL,
+    link: "Star on GitHub",
+  },
+  {
+    icon: Bug,
+    title: "File a good bug",
+    desc: "Hit an error, a slow run, or a confusing screen? An issue with steps to reproduce, what you expected, and what happened is a real contribution.",
+    href: ISSUES_URL,
+    link: "Open an issue",
+  },
+  {
+    icon: ClipboardList,
+    title: "Bring a template",
+    desc: "Workflow templates and examples are the fastest way to take someone from repo to first run. Bring yours via issues or a pull request.",
+    href: ISSUES_URL,
+    link: "Share via issues",
+  },
+  {
+    icon: Share2,
+    title: "Tell one operator",
+    desc: "Word of mouth is how niche tools survive. Show one RevOps or founder friend what n3rf does — one conversation beats a hundred impressions.",
+    href: REPO_URL,
+    link: "Send them the repo",
+  },
+];
+
 const faqs = [
   { q: "When does it open?", a: "Soon. This page will be updated when the group is ready to join." },
   { q: "Is it only for n3rf users?", a: "No. Any open-source GTM tool belongs here — n3rf, n8n, PostHog, OpenBot, or something you built yourself." },
@@ -69,6 +103,7 @@ const faqs = [
   { q: "Is it only for people in Pune?", a: "The focus is Pune — local meetups and a local group — but online and async participation will be part of it too." },
   { q: "Can I share my workflow?", a: "Please do. Share the prompt, the steps, the cost, and what broke. Redact anything sensitive before you post it." },
   { q: "What will meetups look like?", a: "Small and practical. Bring a laptop and a question. Expect 15–20 people at first, working sessions over talks, and time to show what you made." },
+  { q: "Is there a sponsorship program?", a: "Not yet. When n3rf runs on sponsorship it will be listed on this page — not before it's real. Until then, the honest ways to support the project are in section 06: star it, file good issues, share templates, and tell one operator." },
   { q: "Is there a code of conduct?", a: "Yes. The full rules and participation guide will live in COMMUNITY.md in the repo." },
 ];
 
@@ -193,9 +228,26 @@ export function CommunityPage() {
           </div>
         </section>
 
+        <section className="landing-section community-section" data-reveal>
+          <div className="landing-section-heading">
+            <span className="landing-kicker">06 · SUPPORT</span>
+            <h2>Support it by using it.</h2>
+            <p>n3rf is AGPL-licensed and free. No fee, no sponsorship tier to buy, no strings. The best support is using it, breaking it honestly, and telling someone else. If n3rf ever runs on sponsorship, it will say so here — not before it's real.</p>
+          </div>
+          <div className="community-who-grid">
+            {support.map((s) => (
+              <article key={s.title} className="community-card">
+                <div className="community-card-head"><s.icon aria-hidden="true" /><span>{s.title.toUpperCase()}</span></div>
+                <p>{s.desc}</p>
+                <a className="community-support-link" href={s.href} target="_blank" rel="noreferrer">{s.link} <ArrowUpRight aria-hidden="true" /></a>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="community-join" data-reveal>
           <div>
-            <span className="landing-kicker">06 · JOIN</span>
+            <span className="landing-kicker">07 · JOIN</span>
             <h2>We're getting it ready.</h2>
             <p>This community is coming soon. When it opens, this page is where you'll find the way in. Until then, keep building — and bring what you learn when the doors open.</p>
           </div>

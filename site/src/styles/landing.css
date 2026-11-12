@@ -939,6 +939,9 @@
 .community-card-head svg { width: 22px; height: 22px; color: var(--accent); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent)); }
 .community-card-head span { color: var(--text-primary); font: 600 var(--type-label-size)/var(--type-label-lh) var(--font-display); letter-spacing: var(--type-label-track); }
 .community-card p { margin: 0; color: var(--text-secondary); font: 500 var(--type-body-size)/var(--type-body-lh) var(--font-ui); }
+.community-support-link { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-4); color: var(--info); font: 600 var(--type-label-size)/var(--type-label-lh) var(--font-ui); letter-spacing: var(--type-label-track); text-decoration: none; text-transform: uppercase; transition: color var(--dur-micro) var(--ease); }
+.community-support-link:hover { color: var(--text-primary); }
+.community-support-link svg { width: 13px; height: 13px; }
 .community-topics { margin: 0; padding: 0; list-style: none; border: 1px solid var(--line-hairline); border-radius: var(--radius-md); background: var(--surface-panel); overflow: hidden; }
 .community-topics li { position: relative; padding: var(--space-4) var(--space-5) var(--space-4) calc(var(--space-5) + var(--space-5)); border-bottom: 1px solid var(--line-hairline); color: var(--text-secondary); font: 500 var(--type-body-size)/var(--type-body-lh) var(--font-ui); transition: background var(--dur-micro) var(--ease); }
 .community-topics li:hover { background: color-mix(in srgb, var(--accent) 4%, var(--surface-panel)); }
