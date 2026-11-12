@@ -39,4 +39,13 @@ echo "==> Smoke test"
 .venv/bin/pytest -q
 .venv/bin/ruff check app tests
 
-echo "==> Setup complete. Run: ./scripts/run.sh"
+echo "==> Setup complete."
+echo
+echo "Next steps:"
+echo "  1. Configure a provider key (n3rf never stores keys). Either:"
+echo "       cp .env.example .env    # then paste your key into .env"
+echo "     or export it in your shell, e.g. export OPENAI_API_KEY=sk-..."
+echo "     (or skip and use a local model such as Ollama — no key needed)"
+echo "  2. Run: ./scripts/run.sh   (loads .env automatically)"
+echo "  3. Open http://127.0.0.1:8000 — Models page pastes a key for a one-shot"
+echo "     connection test; workspace home warns if no provider is reachable."
