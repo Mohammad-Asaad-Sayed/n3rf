@@ -100,7 +100,8 @@ single-operator deployment; this MVP is not a multi-tenant security boundary.
 - `GET /nodes` — generated node catalog
 - `POST /run` — execute an unsaved graph; optionally pass `target_node_id` to execute that node
   and its upstream dependencies without running downstream nodes
-- `GET/POST /workflows`, `PUT/DELETE /workflows/{id}` — workflow persistence
+- `GET/POST /workflows`, `PUT/DELETE /workflows/{id}` — workflow persistence (PUT is
+  versioned: a stale `version` returns `409 Conflict` so concurrent edits do not clobber)
 - `POST /workflows/{id}/run` — execute a saved workflow
 - `GET /runs/{id}` — persisted run output
 - `POST /upload` — base64-encode a file up to 10 MB
