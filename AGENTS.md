@@ -99,6 +99,13 @@ tests/
   test_database.py  fresh and legacy schema migration coverage
 examples/
   demo.py            a real 6-node pipeline against a real model
+  backup.py          safe SQLite backup helper
+scripts/
+  setup.sh           one-command bootstrap
+  run.sh             start the server
+  verify.sh          full verification
+.opencode/
+  skills/            agent setup skill
 docs/                PRD.md, ARCHITECTURE.md, PLAN.md, TASKS.md, EVA01-DESIGN.md
 ```
 
