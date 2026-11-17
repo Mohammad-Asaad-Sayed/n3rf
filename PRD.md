@@ -91,7 +91,11 @@ integrations is a losing race; ~23 nodes that make the AI pipeline complete is n
 **In**
 
 - A canvas editor: palette, nodes, connections, inspector, results panel.
-- 23 nodes: 7 input, 11 transform, 4 AI, 1 code.
+- 23 nodes (v0.1 scope): 7 input, 11 transform, 4 AI, 1 code.
+  *Status note (Nov 2026):* the shipped build goes beyond this scope — 30 nodes as built:
+  7 input, 13 transform (If / Else added), 1 generic HTTP Request (FR-24), 5 search
+  (Tavily, Exa, SerpApi, Jina, Firecrawl), 4 AI, 1 code. See `GET /nodes` for the current
+  catalog.
 - One model-call-per-row node with schema validation and a repair loop.
 - Per-node results with `rows_in → rows_out`, duration, status and a 5-row sample.
 - Save and re-load a workflow; run history.

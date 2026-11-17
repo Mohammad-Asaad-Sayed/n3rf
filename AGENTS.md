@@ -69,7 +69,10 @@ app/
   nodes/
     __init__.py      imports every node module so @node registers
     input.py         the 7 input nodes
-    data.py          the 11 transform nodes
+    data.py          the 12 core transform nodes
+    http.py          the generic HTTP Request node
+    enrichment.py    the 4 search nodes (Tavily, Exa, SerpApi, Jina)
+    firecrawl.py     the Firecrawl node
     ai.py            the 4 AI nodes
     code.py          the sandboxed Code node
   sandbox.py         child process, rlimits, audit hook

@@ -10,10 +10,19 @@ run workflows or store user data. Install this repository to run the app on a ma
 
 ## Install and start
 
+The fastest path is the one-command setup — it checks tooling, creates the venv, builds the
+frontend and runs the test suite:
+
 ```bash
 git clone https://github.com/Mohammad-Asaad-Sayed/n3rf.git
 cd n3rf
+./scripts/setup.sh
+./scripts/run.sh
+```
 
+Or do it manually:
+
+```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements-dev.txt
@@ -58,9 +67,16 @@ Set `N3RF_DB_PATH` to use a different SQLite file, or `N3RF_DATABASE_URL` for an
 SQLAlchemy-supported database with its driver installed. Alembic migrations run automatically
 when the backend first opens the database.
 
-Back up the database file regularly. For a consistent SQLite backup, stop n3rf before copying
-the file; restart it afterward. Store backups somewhere separate from the machine hosting n3rf
-and protect them as carefully as workflow data.
+Back up the database regularly. The supported way — consistent even while n3rf is running — is:
+
+```bash
+python examples/backup.py backups/
+```
+
+It uses SQLite's online backup API, so there is no need to stop the app. Set `N3RF_DB_PATH` to
+back up a non-default database file. Copying `n3rf.sqlite3` by hand is only guaranteed to be
+consistent when n3rf is stopped first. Store backups somewhere separate from the machine
+hosting n3rf and protect them as carefully as workflow data.
 
 ## Updating
 
