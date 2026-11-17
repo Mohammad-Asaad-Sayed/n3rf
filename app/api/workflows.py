@@ -43,9 +43,7 @@ def update_workflow(workflow_id: str, request: WorkflowRequest) -> dict[str, Any
     except NodeError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     try:
-        return store.save_workflow(
-            workflow_id, request.name, request.model_dump(), request.version
-        )
+        return store.save_workflow(workflow_id, request.name, request.model_dump(), request.version)
     except ConflictError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
