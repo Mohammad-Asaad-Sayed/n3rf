@@ -11,6 +11,7 @@ export default defineConfig({
         claygent: "alternatives/claygent/index.html",
         templates: "templates/index.html",
         community: "community/index.html",
+        magi: "magi/index.html",
       },
     },
   },

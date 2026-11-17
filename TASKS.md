@@ -234,7 +234,7 @@ Recorded so nobody re-litigates them mid-phase. Each needs a decision, not a com
 
 - Multi-select, copy/paste, minimap, auto-layout · the interaction model is not
   settled enough to protect with history.
-- Source/sink integrations (Sheets, Slack, Notion, Supabase) · one HTTP node covers them.
+- Source/sink integrations beyond two sanctioned packs (Sheets, Notion, CRM suites…) · HTTP node covers them; exceptions: Supabase (Select/Upsert/RPC) and Slack (Send/AddReaction/FetchThread + opt-in Bolt /slack/events trigger)
 - Persistent dedup / lookup / upsert · needs Redis.
 - Sub-workflows, loops, error branches · engine complexity before product-market fit.
 - Scheduling, webhooks, cron · `POST /workflows/{id}/run` is the trigger.

@@ -211,13 +211,15 @@ def test_failed_node_returns_redacted_diagnostic_log(monkeypatch):
 
 def test_catalog_has_all_required_node_groups():
     catalog = load_all()
-    assert len(catalog) == 30  # firecrawl added (Nov 2026)
+    assert len(catalog) == 36  # firecrawl Nov 2026 + supabase/slack packs
     assert {spec.group for spec in catalog.values()} == {
         "input",
         "transform",
         "search",
         "ai",
         "code",
+        "supabase",
+        "slack",
     }
 
 

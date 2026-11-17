@@ -75,7 +75,11 @@ app/
     firecrawl.py     the Firecrawl node
     ai.py            the 4 AI nodes
     code.py          the sandboxed Code node
+    slack.py         the 3 opt-in Slack pack nodes (Send / React / Fetch Thread)
+    supabase.py      the 3 opt-in Supabase pack nodes (Select / Upsert / RPC)
   sandbox.py         child process, rlimits, audit hook
+  slack_trigger.py   opt-in Bolt listener; POST /slack/events runs a configured
+                     saved workflow on app_mention; off until env is set
   static/
     eva01-tokens.css shared design tokens
 LICENSE              AGPL-3.0 license text
@@ -94,6 +98,7 @@ site/
   src/               React marketing, comparison, and project-information pages
   legal/             standalone legal-page HTML entry
   alternatives/      standalone comparison-page HTML entry
+  magi/              standalone answer-desk page entry
   package.json       independent marketing-site tooling and dependencies
 docs/
   self-hosting.md    installation, configuration, and data persistence guide
@@ -101,9 +106,13 @@ docs/
 tests/
   test_engine.py test_nodes.py test_expressions.py test_llm.py test_api.py
   test_database.py  fresh and legacy schema migration coverage
+  test_core.py test_registry.py  catalog and registry invariants
+  test_integrations.py test_slack_trigger.py  Slack and Supabase pack coverage
 examples/
   demo.py            a real 6-node pipeline against a real model
   backup.py          safe SQLite backup helper
+  slack.md           Slack pack recipes and failure modes
+  supabase.md        Supabase pack recipes
 scripts/
   setup.sh           one-command bootstrap
   run.sh             start the server
@@ -247,7 +256,9 @@ Copy this into the PR description and tick it honestly.
 - Changing the data contract, the engine's execution model, or the `Param` schema. These are
   load-bearing and every node depends on them.
 - Adding a node that talks to a third-party service. The MVP ships one generic HTTP node
-  instead of integrations, deliberately.
+  instead of integrations, deliberately — two sanctioned exceptions now exist as opt-in packs
+  (Supabase Select/Upsert/RPC and Slack Send/React/Fetch Thread, plus one opt-in Bolt listener
+  at POST /slack/events). New services need the same human sign-off.
 - Introducing a queue or cache. Each is a real answer to a problem this project does not have yet.
 - Adding an ORM or database layer beyond SQLAlchemy and the current single-database setup.
 - Anything that changes how the Code node is isolated, or that would run user code in the API
@@ -266,7 +277,7 @@ Copy this into the PR description and tick it honestly.
 | Module-level `REGISTRY`, no entry_points | Plugin system is a v2 feature, easy to add later |
 | In-process asyncio, no Celery/Redis | Runs under ~60s; a queue is premature |
 | Vanilla JS single-file editor | The interaction model is still moving |
-| No integrations, one generic HTTP node | Out-integration n8n is a losing race |
+| Two sanctioned opt-in packs (Supabase Select/Upsert/RPC; Slack Send/React/Fetch Thread) + one opt-in Bolt listener at /slack/events | Recurring user ask with a thin Web-API surface; env-held keys, no OAuth, no connection layer. HTTP node remains the catch-all |
 | No minimap, multi-select, mobile | None of them test the interaction model |
 | Canvas undo/redo (nodes+edges only) | Structural history was the top papercut; param text keeps native input undo so keystroke safety holds |
 

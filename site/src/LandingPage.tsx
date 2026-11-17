@@ -617,6 +617,8 @@ export function LandingPage() {
             <span>Self-hosted AI data workflows for structured rows.</span>
             <nav aria-label="Footer">
               <a href="/templates">Templates</a>
+              <a href="/magi">Answer desk</a>
+              <a href="/community">Community</a>
               <a href="/legal">About · Privacy · Terms · Data</a>
               <a href={SELF_HOSTING_URL}>Self-hosting guide <ArrowUpRight aria-hidden="true" /></a>
             </nav>

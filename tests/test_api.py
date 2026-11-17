@@ -41,7 +41,7 @@ async def _exercise_api():
     ) as client:
         catalog = await client.get("/nodes")
         assert catalog.status_code == 200
-        assert len(catalog.json()) == 30  # firecrawl added (Nov 2026)
+        assert len(catalog.json()) == 36  # firecrawl Nov 2026 + supabase/slack packs
 
         response = await client.post(
             "/run",

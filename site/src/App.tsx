@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { AnswerDeskPage } from "./AnswerDeskPage";
 import { ClaygentAlternativePage } from "./ClaygentAlternativePage";
 import { CommunityPage } from "./CommunityPage";
 import { LandingPage } from "./LandingPage";
@@ -18,6 +19,8 @@ export function App() {
       document.title = "Templates | n3rf";
     } else if (path === "/community") {
       document.title = "Community | n3rf";
+    } else if (path === "/magi") {
+      document.title = "Answer desk — GTM & PMM answers from your playbook | n3rf";
     } else {
       document.title = "AI data workflows for messy rows | n3rf";
     }
@@ -27,5 +30,6 @@ export function App() {
   if (path === "/alternatives/claygent") return <ClaygentAlternativePage />;
   if (path === "/templates") return <TemplatesPage />;
   if (path === "/community") return <CommunityPage />;
+  if (path === "/magi") return <AnswerDeskPage />;
   return <LandingPage />;
 }

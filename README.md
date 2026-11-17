@@ -98,10 +98,14 @@ labeled simulated mode (amber banner, amber LED, `· simulated` in the run meta)
 
 - **Rows are the unit.** Every node receives `list[Item]` and returns `list[Item]` —
   `Item = {json, meta}`, with lineage and engine bookkeeping kept out of your export columns.
-- **30 nodes, one contract.** Import (CSV, spreadsheet paste, text, JSON), transform nodes
+- **36 nodes, one contract.** Import (CSV, spreadsheet paste, text, JSON), transform nodes
   (Filter, Sort, Limit, Set Fields, Aggregate, Deduplicate, …), 5 search/scrape nodes (Tavily,
   Exa, SerpApi, Jina, Firecrawl), AI nodes (Ask AI, AI Filter, AI Ranker, Semantic Dedup) against
-  any OpenAI-compatible endpoint, plus a generic HTTP Request node and a sandboxed Code node.
+  any OpenAI-compatible endpoint, plus a generic HTTP Request node and a sandboxed Code node —
+  and two opt-in packs: **Supabase** (Select / Upsert / RPC) and **Slack** (Send Message /
+  Add Reaction / Fetch Thread) with an opt-in **Slack trigger** (POST /slack/events, slack-bolt)
+  that runs a saved workflow on `app_mention` — env-held keys, never stored in workflows. The
+  two packs live in their own palette groups (`supabase`, `slack`) in the node library.
 - **A generated inspector.** Node forms are projected from backend `Param(...)` declarations —
   no per-node frontend code, so the form, validation and docs can never drift apart.
 - **Per-row fan-out controls.** Concurrency, `max_output_rows`, retries, a validation-repair
@@ -121,6 +125,8 @@ list[Item]  →  node  →  list[Item]     # Item = {"json": {...}, "meta": {...
 
 ## Examples
 
+- [`examples/slack.md`](./examples/slack.md) — Slack pack recipes (thread read → reply → react), scopes and failure modes.
+- [`examples/supabase.md`](./examples/supabase.md) — Supabase pack recipes (decision-log table, upsert, select, RPC).
 - [`examples/demo.py`](./examples/demo.py) — a real 6-node pipeline against a real model,
   start to finish.
 - [`examples/dummy_companies.csv`](./examples/dummy_companies.csv) — the sample account list
