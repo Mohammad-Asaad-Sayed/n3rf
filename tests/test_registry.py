@@ -18,7 +18,7 @@ def test_load_all_is_idempotent():
     first = load_all()
     second = load_all()
     assert first is second
-    assert len(first) == 30  # firecrawl added (Nov 2026)
+    assert len(first) == 36  # firecrawl Nov 2026 + supabase/slack packs
     assert load_all() == first
 
 
@@ -39,7 +39,7 @@ def test_every_node_has_group_description_and_params():
 
 def test_groups_are_known():
     groups = {spec.group for spec in load_all().values()}
-    assert groups == {"input", "transform", "search", "ai", "code"}
+    assert groups == {"input", "transform", "search", "ai", "code", "supabase", "slack"}
 
 
 def test_registry_is_module_level_dict():

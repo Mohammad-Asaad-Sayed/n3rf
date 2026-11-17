@@ -1,10 +1,11 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import slack_trigger
 from app.api import (
     models_router,
     nodes_router,
@@ -33,6 +34,18 @@ def create_app() -> FastAPI:
     application.include_router(runs_router)
     application.include_router(workflows_router)
     application.include_router(upload_router)
+
+    @application.post("/slack/events", include_in_schema=False)
+    async def slack_events(request: Request):
+        if not slack_trigger.trigger_configured():
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Slack trigger is not configured. Set SLACK_SIGNING_SECRET, "
+                    "SLACK_BOT_TOKEN and N3RF_SLACK_TRIGGER_WORKFLOW_ID."
+                ),
+            )
+        return await slack_trigger.handle(request)
 
     # Allow cross-origin frontend requests without credentialed cookies.
     # Secrets never travel in URLs; model keys live only in this process env.

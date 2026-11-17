@@ -273,3 +273,19 @@ def render(template: Any, row: dict[str, Any]) -> Any:
     if len(matches) == 1 and matches[0].span() == (0, len(template)):
         return evaluate(matches[0].group(1), row)
     return _TEMPLATE.sub(lambda match: str(evaluate(match.group(1), row)), template)
+
+
+def render_deep(value: Any, row: dict[str, Any]) -> Any:
+    """Recursively render ``{{ }}`` templates inside JSON-like structures.
+
+    Strings are rendered with :func:`render` (typed passthrough when the whole
+    string is one template); dict keys are left untouched; everything else is
+    returned unchanged.
+    """
+    if isinstance(value, str):
+        return render(value, row)
+    if isinstance(value, list):
+        return [render_deep(item, row) for item in value]
+    if isinstance(value, dict):
+        return {key: render_deep(item, row) for key, item in value.items()}
+    return value

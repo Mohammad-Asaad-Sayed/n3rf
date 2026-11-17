@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.expressions import ExpressionError, evaluate, render
+from app.expressions import ExpressionError, evaluate, render, render_deep
 
 ROW = {"name": "Acme", "score": 5, "tags": [1, 2], "user": {"name": "Ada"}}
 
@@ -36,6 +36,29 @@ def test_happy_paths():
     )
     assert render("Hi {{name}}", ROW) == "Hi Acme"
     assert render("Hi {{ $json.name }}", ROW) == "Hi Acme"
+
+
+def test_render_deep():
+    payload = {
+        "p_path": "{{name}}",
+        "p_count": "{{score}}",
+        "p_whole": "{{user.name}}",
+        "p_tags": ["{{name}}", "static"],
+        "p_nested": {"inner": "{{name}}", "keep": 3},
+        "p_plain": "no template",
+    }
+    out = render_deep(payload, ROW)
+    assert out["p_path"] == "Acme"
+    assert out["p_count"] == 5  # whole-string template keeps the typed value
+    assert out["p_whole"] == "Ada"
+    assert out["p_tags"] == ["Acme", "static"]
+    assert out["p_nested"] == {"inner": "Acme", "keep": 3}
+    assert out["p_plain"] == "no template"
+    # dict keys are never rendered
+    assert render_deep({"{{name}}": 1}, ROW) == {"{{name}}": 1}
+    # scalars pass through
+    assert render_deep(5, ROW) == 5
+    assert render_deep(None, ROW) is None
 
 
 @pytest.mark.parametrize(
