@@ -1,9 +1,16 @@
 [project]
 name = "n3rf"
 version = "0.1.0"
-description = "Local-first AI workflow builder for structured row pipelines"
+description = "Self-hosted, AI-assisted workflow builder — messy input in, structured rows out"
+readme = "README.md"
 license = "AGPL-3.0-only"
 requires-python = ">=3.12"
+
+[project.urls]
+Repository = "https://github.com/Mohammad-Asaad-Sayed/n3rf"
+Issues = "https://github.com/Mohammad-Asaad-Sayed/n3rf/issues"
+Documentation = "https://github.com/Mohammad-Asaad-Sayed/n3rf/blob/main/docs/self-hosting.md"
+Changelog = "https://github.com/Mohammad-Asaad-Sayed/n3rf/commits/main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

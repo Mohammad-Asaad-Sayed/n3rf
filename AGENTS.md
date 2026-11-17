@@ -94,6 +94,7 @@ site/
   package.json       independent marketing-site tooling and dependencies
 docs/
   self-hosting.md    installation, configuration, and data persistence guide
+  assets/            images referenced by README.md
 tests/
   test_engine.py test_nodes.py test_expressions.py test_llm.py test_api.py
   test_database.py  fresh and legacy schema migration coverage
@@ -104,6 +105,9 @@ scripts/
   setup.sh           one-command bootstrap
   run.sh             start the server
   verify.sh          full verification
+.github/
+  workflows/ci.yml Python 3.12 pytest + ruff, frontend and site builds on Ubuntu
+CONTRIBUTING.md       how to contribute; points at SETUP.md / AGENTS.md / verify.sh
 .opencode/
   skills/            agent setup skill
 docs/                PRD.md, ARCHITECTURE.md, PLAN.md, TASKS.md, EVA01-DESIGN.md

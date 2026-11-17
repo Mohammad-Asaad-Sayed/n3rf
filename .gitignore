@@ -7,6 +7,7 @@ __pycache__/
 !.env.example
 *.py[cod]
 n3rf.sqlite3
+backups/
 frontend/node_modules/
 frontend/dist/
 frontend/tsconfig.tsbuildinfo

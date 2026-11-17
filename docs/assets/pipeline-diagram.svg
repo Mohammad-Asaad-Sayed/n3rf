@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 250" role="img" aria-labelledby="title desc">
+  <title id="title">n3rf pipeline: CSV File to Filter to Set Fields to Sort to Limit</title>
+  <desc id="desc">A five-node n3rf workflow: import 12 company rows from CSV, keep rows with funding_year greater or equal 2021 (7 rows), add a segment column, sort by funding_year descending as numbers, and keep the first 5 rows.</desc>
+
+  <defs>
+    <pattern id="grid" x="0" y="0" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="1.2" cy="1.2" r="1.1" fill="#5A4691" opacity="0.55"/>
+    </pattern>
+    <filter id="port-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="2.6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1160" height="250" rx="3" fill="#0C0818"/>
+  <rect width="1160" height="250" rx="3" fill="url(#grid)"/>
+  <rect x="0.5" y="0.5" width="1159" height="249" rx="3" fill="none" stroke="#2E2150"/>
+
+  <!-- header strip -->
+  <text x="24" y="34" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="11" letter-spacing="2.2" fill="#8B80AE">RECENTLY FUNDED ACCOUNTS</text>
+  <text x="1136" y="34" text-anchor="end" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="11" letter-spacing="1.5" fill="#A6FF3D">12 ROWS IN → 5 OUT</text>
+  <line x1="24" y1="46" x2="1136" y2="46" stroke="#2E2150"/>
+
+  <!-- connectors -->
+  <g stroke="#7B4BB8" stroke-width="2" fill="none">
+    <line x1="212" y1="140" x2="238" y2="140"/>
+    <line x1="462" y1="140" x2="488" y2="140"/>
+    <line x1="712" y1="140" x2="738" y2="140"/>
+    <line x1="962" y1="140" x2="988" y2="140"/>
+  </g>
+  <g fill="#A6FF3D" filter="url(#port-glow)">
+    <rect x="205" y="134.5" width="11" height="11" transform="rotate(45 210.5 140)"/>
+    <rect x="231" y="134.5" width="11" height="11" transform="rotate(45 236.5 140)"/>
+    <rect x="455" y="134.5" width="11" height="11" transform="rotate(45 460.5 140)"/>
+    <rect x="481" y="134.5" width="11" height="11" transform="rotate(45 486.5 140)"/>
+    <rect x="705" y="134.5" width="11" height="11" transform="rotate(45 710.5 140)"/>
+    <rect x="731" y="134.5" width="11" height="11" transform="rotate(45 736.5 140)"/>
+    <rect x="955" y="134.5" width="11" height="11" transform="rotate(45 960.5 140)"/>
+    <rect x="981" y="134.5" width="11" height="11" transform="rotate(45 986.5 140)"/>
+  </g>
+
+  <!-- node cards -->
+  <g font-family="'Rajdhani', 'Chakra Petch', system-ui, sans-serif">
+    <!-- 1 · CSV File -->
+    <rect x="24" y="86" width="188" height="108" rx="3" fill="#1E1640" stroke="#3D2C68"/>
+    <text x="42" y="110" font-size="9" letter-spacing="2" fill="#9A6BFF">INPUT</text>
+    <text x="42" y="130" font-size="15" font-weight="700" letter-spacing="1" fill="#F7F4FF">CSV FILE</text>
+    <line x1="42" y1="138" x2="194" y2="138" stroke="#2E2150"/>
+    <text x="42" y="154" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">dummy_companies.csv</text>
+    <text x="42" y="176" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">0 IN → <tspan fill="#A6FF3D">12 OUT</tspan></text>
+
+    <!-- 2 · Filter -->
+    <rect x="238" y="86" width="224" height="108" rx="3" fill="#1E1640" stroke="#3D2C68"/>
+    <text x="256" y="110" font-size="9" letter-spacing="2" fill="#9A6BFF">TRANSFORM</text>
+    <text x="256" y="130" font-size="15" font-weight="700" letter-spacing="1" fill="#F7F4FF">FILTER</text>
+    <line x1="256" y1="138" x2="444" y2="138" stroke="#2E2150"/>
+    <text x="256" y="154" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">funding_year &gt;= "2021"</text>
+    <text x="256" y="176" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">12 IN → <tspan fill="#A6FF3D">7 OUT</tspan></text>
+
+    <!-- 3 · Set Fields -->
+    <rect x="488" y="86" width="224" height="108" rx="3" fill="#1E1640" stroke="#3D2C68"/>
+    <text x="506" y="110" font-size="9" letter-spacing="2" fill="#9A6BFF">TRANSFORM</text>
+    <text x="506" y="130" font-size="15" font-weight="700" letter-spacing="1" fill="#F7F4FF">SET FIELDS</text>
+    <line x1="506" y1="138" x2="694" y2="138" stroke="#2E2150"/>
+    <text x="506" y="154" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">segment = {{industry}} /</text>
+    <text x="506" y="166" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">  {{headcount_band}}</text>
+    <text x="506" y="182" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">7 IN → <tspan fill="#A6FF3D">7 OUT</tspan></text>
+
+    <!-- 4 · Sort -->
+    <rect x="738" y="86" width="224" height="108" rx="3" fill="#1E1640" stroke="#3D2C68"/>
+    <text x="756" y="110" font-size="9" letter-spacing="2" fill="#9A6BFF">TRANSFORM</text>
+    <text x="756" y="130" font-size="15" font-weight="700" letter-spacing="1" fill="#F7F4FF">SORT</text>
+    <line x1="756" y1="138" x2="944" y2="138" stroke="#2E2150"/>
+    <text x="756" y="154" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">funding_year · desc ·</text>
+    <text x="756" y="166" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">  numeric</text>
+    <text x="756" y="182" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">7 IN → <tspan fill="#A6FF3D">7 OUT</tspan></text>
+
+    <!-- 5 · Limit -->
+    <rect x="988" y="86" width="148" height="108" rx="3" fill="#1E1640" stroke="#3D2C68"/>
+    <text x="1004" y="110" font-size="9" letter-spacing="2" fill="#9A6BFF">TRANSFORM</text>
+    <text x="1004" y="130" font-size="15" font-weight="700" letter-spacing="1" fill="#F7F4FF">LIMIT</text>
+    <line x1="1004" y1="138" x2="1120" y2="138" stroke="#2E2150"/>
+    <text x="1004" y="154" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="9.5" fill="#B9AEDC">max 5</text>
+    <text x="1004" y="176" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">7 IN → <tspan fill="#A6FF3D">5 OUT</tspan></text>
+  </g>
+
+  <!-- footer strip -->
+  <line x1="24" y1="216" x2="1136" y2="216" stroke="#2E2150"/>
+  <text x="580" y="234" text-anchor="middle" font-family="'Share Tech Mono', ui-monospace, monospace" font-size="10" fill="#8B80AE">list[Item]  →  node  →  list[Item]      <tspan fill="#6B5F92">·</tspan>      Item = { json, meta }</text>
+</svg>
