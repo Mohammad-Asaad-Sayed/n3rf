@@ -32,7 +32,9 @@ consequences run through every decision below:
    concurrency, retries, cost accounting and row caps are core features, not polish.
 
 The wedge is narrow on purpose: ~23 nodes that make an AI data pipeline complete, not 400
-integrations. Do not add integrations. A single generic HTTP Request node covers them.
+integrations. (As of Nov 2026 the build ships **30 nodes**: 7 input, 13 transform, 5 search,
+4 AI, 1 code — see the PRD §6 status note and `GET /nodes`.) Do not add integrations. A single
+generic HTTP Request node covers them.
 
 ---
 
@@ -191,7 +193,11 @@ Supported param `type` values, and the control each one renders:
 
 ---
 
-## 5. The node set: 23 nodes, and nothing else
+## 5. The node set (v0.1 scope: 23 nodes)
+
+*Status note (Nov 2026):* the shipped build exceeds this list. As built: 7 input, 13 transform
+(the 11 below plus **If / Else** and the **HTTP Request** node), 5 search (Tavily, Exa, SerpApi,
+Jina, Firecrawl), 4 AI, 1 code — 30 nodes total. See `GET /nodes` for the current catalog.
 
 **Input (7)** — Manual JSON · Text Lines · CSV File · File Upload · Spreadsheet Paste ·
 Field Builder · Example Dataset

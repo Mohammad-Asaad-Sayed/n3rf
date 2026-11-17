@@ -10,6 +10,7 @@ authoritative docs instead of repeating them.
 - Read [AGENTS.md](./AGENTS.md) for the working agreement — the row contract, the `Param(...)`
   extension model, the no-`eval` rule, and the PR checklist. Those rules apply whether a human or
   an AI agent writes the code.
+- By participating, you agree to abide by [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
 - Keep changes focused: one node, one fix, one doc per pull request when possible.
 
 ## Ground rules that will block a PR
