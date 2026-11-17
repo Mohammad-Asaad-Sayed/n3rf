@@ -92,10 +92,12 @@ integrations is a losing race; ~23 nodes that make the AI pipeline complete is n
 
 - A canvas editor: palette, nodes, connections, inspector, results panel.
 - 23 nodes (v0.1 scope): 7 input, 11 transform, 4 AI, 1 code.
-  *Status note (Nov 2026):* the shipped build goes beyond this scope — 30 nodes as built:
-  7 input, 13 transform (If / Else added), 1 generic HTTP Request (FR-24), 5 search
-  (Tavily, Exa, SerpApi, Jina, Firecrawl), 4 AI, 1 code. See `GET /nodes` for the current
-  catalog.
+  *Status note (Nov 2026):* the shipped build goes beyond this scope — 36 nodes as built:
+  7 input, 13 transform (If / Else added), the six opt-in pack nodes in two groups
+  (**Supabase** Select/Upsert/RPC and **Slack** Send Message / Add Reaction / Fetch Thread),
+  1 generic HTTP Request (FR-24), 5 search (Tavily, Exa, SerpApi, Jina, Firecrawl),
+  4 AI, 1 code.
+  See `GET /nodes` for the current catalog.
 - One model-call-per-row node with schema validation and a repair loop.
 - Per-node results with `rows_in → rows_out`, duration, status and a 5-row sample.
 - Save and re-load a workflow; run history.
@@ -106,7 +108,7 @@ integrations is a losing race; ~23 nodes that make the AI pipeline complete is n
 
 | Cut | Why |
 |---|---|
-| Source/sink integrations (Sheets, Slack, Notion, Supabase) | 30+ nodes of OAuth and pagination boilerplate, zero differentiation |
+| Source/sink integrations beyond the two sanctioned packs (Sheets, Notion, CRM suites…) | Boilerplate, zero differentiation. Two exception packs ship as opt-in nodes: **Supabase** Select/Upsert/RPC (PostgREST, env-held keys) and **Slack** Send Message/Add Reaction/Fetch Thread (bot token from env, no connection layer) plus one opt-in Bolt listener at `POST /slack/events` (runs a configured saved workflow on `app_mention`; off until configured) |
 | Persistent dedup / lookup / upsert | Needs Redis or a real store — infrastructure before product-market fit |
 | Sub-workflows, loops, error branches | Multiply engine complexity; a DAG proves the wedge |
 | Scheduling, webhooks, cron triggers | Out of scope until someone asks; `POST /workflows/{id}/run` is the trigger |

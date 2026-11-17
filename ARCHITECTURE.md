@@ -186,7 +186,7 @@ nodes (LLM Structured, AI Filter, AI Ranker, Semantic Dedup), and Code.
 
 | Cut | Why |
 |---|---|
-| Source/sink integrations (Sheets, Supabase, Notion, Slack…) | 30+ nodes of mostly-HTTP boilerplate. Each one is a week of OAuth + pagination + rate-limit handling and zero product differentiation. Ship **one** generic HTTP Request node instead and let users call anything. |
+| Source/sink integrations beyond two sanctioned packs (Sheets, Notion, CRM suites…) | The rationale stands: pagination/OAuth/suite-specific boilerplate with zero product differentiation. Two deliberate exceptions shipped as **opt-in** node packs: **Supabase** (Select / Upsert / RPC — PostgREST sugar, env-held keys) and **Slack** (Send Message / Add Reaction / Fetch Thread — bot token from env, no connection layer) plus a single opt-in Bolt-based listener at `POST /slack/events` that runs a configured saved workflow on `app_mention`; off until `SLACK_*` and `N3RF_SLACK_TRIGGER_WORKFLOW_ID` are set. The HTTP Request node remains the catch-all. |
 | Persistent Dedup / Lookup / Upsert | Needs Redis or a real store — infrastructure before product-market fit. |
 | AI Ranker via a listwise prompt | Pairwise or per-item scoring is simpler, cheaper and more debuggable than "here are 50 rows, rank them". |
 | Sub-workflows, loops, error branches | Real features, but they multiply the engine's complexity. A DAG is enough to prove the wedge. |

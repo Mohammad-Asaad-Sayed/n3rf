@@ -1,4 +1,4 @@
-import { Code2, Database, Layers3, Search, Sparkles, type LucideIcon } from "lucide-react";
+import { Code2, Database, Layers3, MessageSquare, Search, Sparkles, Table2, type LucideIcon } from "lucide-react";
 
 /**
  * Micro-SaaS split hosting (Bricks-style): the static frontend may sit on a
@@ -79,10 +79,12 @@ export type RunResult = {
 export type SavedWorkflow = { id: string; name: string };
 export type PaneWidths = { palette: number; inspector: number; results: number };
 
-export const groupOrder = ["input", "transform", "search", "ai", "code"];
+export const groupOrder = ["input", "transform", "supabase", "slack", "search", "ai", "code"];
 export const groupTokens: Record<string, string> = {
   input: "var(--info)",
   transform: "var(--purple-light)",
+  supabase: "var(--info)",
+  slack: "var(--warn)",
   search: "var(--accent-dim)",
   ai: "var(--alert)",
   code: "var(--warn)",
@@ -90,6 +92,8 @@ export const groupTokens: Record<string, string> = {
 export const groupIcons: Record<string, LucideIcon> = {
   input: Database,
   transform: Layers3,
+  supabase: Table2,
+  slack: MessageSquare,
   search: Search,
   ai: Sparkles,
   code: Code2,

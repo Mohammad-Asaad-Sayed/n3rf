@@ -32,9 +32,10 @@ consequences run through every decision below:
    concurrency, retries, cost accounting and row caps are core features, not polish.
 
 The wedge is narrow on purpose: ~23 nodes that make an AI data pipeline complete, not 400
-integrations. (As of Nov 2026 the build ships **30 nodes**: 7 input, 13 transform, 5 search,
-4 AI, 1 code — see the PRD §6 status note and `GET /nodes`.) Do not add integrations. A single
-generic HTTP Request node covers them.
+integrations. (As of Nov 2026 the build ships **36 nodes**: 7 input, 13 transform,
+3 Supabase pack nodes, 3 Slack pack nodes, 5 search, 4 AI, 1 code — see the PRD §6 status note and `GET /nodes`. Two opt-in integration packs are
+sanctioned: **Supabase** Select/Upsert/RPC and **Slack** Send Message / Add Reaction / Fetch
+Thread — both are thin PostgREST/Web-API sugar with env-held keys, no connection layer, plus one opt-in Bolt trigger at POST /slack/events.) Do not add integrations. A single generic HTTP Request node covers them.
 
 ---
 
@@ -196,8 +197,9 @@ Supported param `type` values, and the control each one renders:
 ## 5. The node set (v0.1 scope: 23 nodes)
 
 *Status note (Nov 2026):* the shipped build exceeds this list. As built: 7 input, 13 transform
-(the 11 below plus **If / Else** and the **HTTP Request** node), 5 search (Tavily, Exa, SerpApi,
-Jina, Firecrawl), 4 AI, 1 code — 30 nodes total. See `GET /nodes` for the current catalog.
+(the 11 below plus **If / Else** and the **HTTP Request** node), 3 **Supabase** pack nodes
+(Select/Upsert/RPC) and 3 **Slack** pack nodes (Send Message / Add Reaction / Fetch Thread), 5
+search (Tavily, Exa, SerpApi, Jina, Firecrawl), 4 AI, 1 code — 36 nodes total. See `GET /nodes`.
 
 **Input (7)** — Manual JSON · Text Lines · CSV File · File Upload · Spreadsheet Paste ·
 Field Builder · Example Dataset
@@ -212,10 +214,15 @@ Aggregate · Expand Arrays · Merge · Compare Datasets · Deduplicate
 Plus one optional extra worth shipping early: a **generic HTTP Request node**, ~80 lines. It
 turns "you don't have the integration I need" from a blocker into an inconvenience.
 
-Deliberately out: source/sink integrations (Sheets, Slack, Supabase, Notion — a week of OAuth
-and pagination each, zero differentiation), persistent dedup/lookup (needs Redis), listwise
-ranking prompts, sub-workflows, loops, error branches, scheduling, webhooks, cron.
-`POST /workflows/{id}/run` is the trigger.
+Deliberately out: source/sink integrations in general (Sheets, Notion, CRM suites — a week of
+OAuth and pagination each, zero differentiation; the HTTP Request node remains the catch-all),
+with two sanctioned opt-in exceptions shipped Nov 2026: the **Supabase** pack (Select / Upsert /
+RPC — PostgREST with env-held keys) and the **Slack** pack (Send Message / Add Reaction / Fetch
+Thread — bot token from env, no connection layer), plus one opt-in Bolt listener at POST
+/slack/events that runs a configured saved workflow on app_mention. Also out: persistent
+dedup/lookup (needs Redis), listwise ranking prompts, sub-workflows, loops, error branches,
+scheduling, webhooks, cron (the single sanctioned exception is the Bolt `app_mention` listener at
+POST /slack/events). `POST /workflows/{id}/run` is the general trigger.
 
 ---
 
